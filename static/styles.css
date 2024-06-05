@@ -1,0 +1,8 @@
+/* This changes the width for all the offcanvas in the app */
+.offcanvas{
+     width: 200px !important;
+} 
+
+#menu-navs{
+    text-align: center;
+}
