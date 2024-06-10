@@ -1,6 +1,6 @@
 /* This changes the width for all the offcanvas in the app */
 .offcanvas{
-     width: 200px !important;
+     width: 20% !important;
 } 
 
 #menu-navs{
@@ -14,13 +14,27 @@ body{
 }
 
 #banner-list{
-    background-color: pink;
+    padding: 100px 0px;
+    width: 20% !important;
+    height: 100%;
 }
 
 #banner-preview{
     background-color: aqua;
+    height: 100%;
 }
 
-#banner-container{
+#banner-item{
+    width: 90%;
+    height: 0;
+    padding-bottom: 50%;
+    text-align: center;
+    background-size: cover;  
+}
+
+.carousel-item{
     height: 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
 }

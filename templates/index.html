@@ -3,10 +3,19 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-    <div class="d-flex align-items-stretch" id="banner-container">
-        <div class="flex-fill w-25" id="banner-list">
-        </div>
-        <div class="flex-fill w-75" id="banner-preview">
-        </div>
+    <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
+        <button class="badge" id="banner-item" name="banner-name" style="background-image: url(static/images/lyres/standard-banner-thumbnail.png)" value="Standard">
+        </button>
     </div>
+    
+    <div id="banner-preview" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-touch="false" data-bs-pause="false" style="z-index: 0">
+        <div class="carousel-inner" style="height: 100%">
+          <div class="carousel-item active" style="background-image: url(static/images/lyres/1.jpg)">
+          </div>
+          <div class="carousel-item" style="background-image: url(static/images/lyres/2.jpg)">
+          </div>
+          <div class="carousel-item" style="background-image: url(static/images/lyres/3.jpg)">
+          </div>
+        </div>
+      </div>
 {% endblock %}
