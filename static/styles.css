@@ -6,3 +6,21 @@
 #menu-navs{
     text-align: center;
 }
+
+
+html,
+body{
+    height:100%;
+}
+
+#banner-list{
+    background-color: pink;
+}
+
+#banner-preview{
+    background-color: aqua;
+}
+
+#banner-container{
+    height: 100%;
+}
