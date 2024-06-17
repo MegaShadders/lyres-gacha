@@ -73,3 +73,13 @@ body{
     -webkit-text-stroke-color: black;
 
 }
+
+#pull-background{
+    background-position: center;
+    background-size: cover;
+    height: 100%;
+    width: 100%;
+    top: 0px;
+    left: 0px;
+}
+
