@@ -3,11 +3,31 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-    <div class="position-relative" id="pull-background" style="background-image: url(static/images/flowers.jpg)">
-        <div class="position-absolute" id="portrait-container">
-            <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
+    <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/flowers.jpg)">
+        <div class="carousel-inner" style="height: 100%;">
+            <div class="position-absolute carousel-item active" id="portrait-container">
+                <img class="img-responsive" src="static/images/gate.png">
+            </div>
+
+            {% for unit in units %}
+                <div class="position-absolute carousel-item" id="portrait-container">
+                    <img class="img-responsive" src="static/images/lyres/portraits/{{ unit[0] }}.png">
+                </div>
+            {% endfor %}
         </div>
+          <button class="carousel-control-next" type="button" data-bs-target="#pull-background" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Next</span>
+          </button>
+        
     </div>
+    
+    <!-- Prevent Form Resubmission -->
+    <script>
+        if ( window.history.replaceState ) {
+            window.history.replaceState( null, null, window.location.href );
+        }
+    </script>
     
     
 
