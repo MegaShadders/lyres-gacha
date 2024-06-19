@@ -106,3 +106,44 @@ body{
 #pull-background .carousel-item-prev {
     transition-duration: 1000ms;
 }
+
+#portraits-last {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    width: 100%; /* Adjust as needed for the container width */
+    height: 100%; /* Adjust as needed for the container height */
+    box-sizing: border-box; /* Ensure padding and borders are included in the element's total width and height */
+    overflow: hidden; /* Optional: to hide overflow */
+    row-gap: 10%;
+    gap: 1%
+}
+
+#portraits-last img {
+    flex: 1 1 19%; /* Each image takes up approximately 10% of the container width minus the gap */
+    max-width: 19%; /* Ensures images don't exceed their allocated width */
+    height: auto; /* Maintain aspect ratio */
+    object-fit: cover; /* Maintain aspect ratio and cover the entire space */
+    box-sizing: border-box; /* Ensure padding and borders are included in the element's total width and height */
+}
+
+/* Media query for portrait orientation */
+@media (max-aspect-ratio: 1/1) {
+    #portraits-last {
+        flex-direction: column; /* Change to column layout */
+        align-content: space-evenly;
+        row-gap: 0%;
+    }
+
+    #portraits-last img {
+        flex: 1 1 auto;
+        max-height: 19%;
+        max-width: 100%;
+        width: auto;
+
+    }
+}
+
+

@@ -3,20 +3,30 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-    <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/flowers.jpg)" data-bs-wrap="false">
+    <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/flowers.jpg)" data-bs-wrap="true">
         <div class="carousel-inner" style="height: 100%;">
             <div class="position-absolute carousel-item active" id="portrait-container">
-                <img class="img-responsive" src="static/images/gate.png">
+                <img src="static/images/gate.png">
             </div>
 
             {% for unit in units %}
                 <div class="position-absolute carousel-item" id="portrait-container">
-                    <img class="img-responsive" src="static/images/lyres/portraits/{{ unit[0] }}.png">
+                    <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
                 </div>
             {% endfor %}
+            
+            {% if units|length != 1 %}
+                <div class="position-absolute carousel-item" id="portrait-container">
+                    <div id="portraits-last">
+                        {% for unit in units %}
+                                <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
         </div>
-          <button class="carousel-control-next" type="button" data-bs-target="#pull-background" data-bs-slide="next" style="width: 100%;">
-          </button>
+          <button class="carousel-control-next" type="button" data-bs-target="#pull-background" data-bs-slide="next" style="width: 100%;"></button>
+
         
     </div>
     
