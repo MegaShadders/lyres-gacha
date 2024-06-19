@@ -88,23 +88,21 @@ body{
     width: 100%;
     text-align: center;
     top: 10%;
-    -webkit-transition: all 5s ease 0s;
-    transition: all 0.1s ease 0s;
-    -webkit-transform: scale(1);
-    transform: scale(1);
 }
 
 #portrait-container img{
     display: block;
     margin: 0 auto;
-    height: 100%;
-    -webkit-transition: all 5s linear 0s;
-    transition: all 1s ease 0s;
-    transform: perspective(100vw) translateZ(-500vw);
-    opacity: 0;
+    height: 100%;    
 }
 
-#pull-background .carousel-item.active .img-responsive {
-    opacity: 1;
-    transform: perspective(100vw) translateZ(0);
+#pull-background .active.carousel-item-end, 
+#pull-background .active.carousel-item-start {
+    transition-duration: 1000ms;
+}
+
+
+#pull-background .carousel-item-next, 
+#pull-background .carousel-item-prev {
+    transition-duration: 1000ms;
 }
