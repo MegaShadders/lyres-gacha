@@ -94,7 +94,6 @@ body{
     display: block;
     margin: 0 auto;
     height: 100%;
-    opacity: 1;
 }
 
 .carousel-item.active{
@@ -105,12 +104,7 @@ body{
 /* Transition for the exiting item */
 #pull-background .active.carousel-item-start {
     transition: all 1000ms ease-out 0s;
-    transform: perspective(500vw) translateZ(500vw) translateY(5vw);
-    opacity: 0;
-}
-
-#pull-background .active.carousel-item-end {
-    transition: all 1000ms ease-out 0s;
+    transform: perspective(500vw) translateZ(500vw);
     opacity: 0;
 }
 
