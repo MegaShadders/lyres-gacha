@@ -22,32 +22,56 @@
                                 <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
                         {% endfor %}
                     </div>
+                    
+                    <form action="/pull" method="post">
+                        <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1; padding-left: 0%;" id="pull-list">
+                            <button class="badge rounded-pill position-relative pull-button" id="back-button">
+                                <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">Back</h1>
+                            </button>
+                            <button type="submit" class="badge rounded-pill position-relative pull-button" id="pull1" name="pullNum" value="{{ pullNum }}">
+                                <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">Pull Again</h1>
+                            </button>
+                            <input type="hidden" name="bannerID" value="{{ bannerID }}">
+                        </div> 
+                    </form>
                 </div>
             {% endif %}
         </div>
-        <button class="carousel-control-next" type="button" data-bs-target="#pull-background" data-bs-slide="next" style="width: 100%;"></button>
+        <button class="carousel-control-next" type="button" data-bs-target="#pull-background" data-bs-slide="next" style="width: 100%;" id="next-button"></button>
         <button id="skip-button" class="carousel-control-next position-absolute end-0 bottom-0 fs-1 opacity-100 bg-dark bg-opacity-75 rounded-pill" type="button" data-bs-target="#pull-background" data-bs-slide-to="{{ units|length + 1 }}" style="opacity: 90%; height: 10%; top: 90%">
             <span class="carousel-control-next-icon " aria-hidden="true"></span>
             <span class="carousel-control-next-icon " aria-hidden="true"></span>
             <span class="carousel-control-next-icon " aria-hidden="true"></span>
         </button>        
     </div>
+
     
-    <!-- Prevent Form Resubmission -->
+    
+   
     <script>
+        // Prevent form resubmission
         if ( window.history.replaceState ) {
             window.history.replaceState( null, null, window.location.href );
         }
-    </script>
+    
+        // Hide skip button after press
 
-    <script>
-        var button = document.getElementById("skip-button");
-        button.addEventListener("click", hide, false)
+        document.getElementById("skip-button").addEventListener("click", hide, false);
 
         function hide() {
-            document.getElementById('skip-button').style.display = 'block'; 
-            this.style.display = 'none'
+            var skipButton = document.getElementById('skip-button');
+            skipButton.style.display = 'block';
+            skipButton.style.display = 'none';
+            var nextButton = document.getElementById('next-button');
+            nextButton.style.display = 'block'; 
+            nextButton.style.display = 'none';
         }  
+
+        // Back button
+        document.getElementById("back-button").onclick = function () {
+            location.href = "/"
+        }
+
     </script>
     
     

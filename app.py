@@ -26,6 +26,4 @@ def pull():
     for i in range(int(request.form.get("pullNum"))):
         units.append(random.choice(pool))
 
-
-
-    return render_template("pull.html", units=units)
+    return render_template("pull.html", units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
