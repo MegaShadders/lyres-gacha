@@ -93,18 +93,32 @@ body{
 #portrait-container img{
     display: block;
     margin: 0 auto;
-    height: 100%;    
+    height: 100%;
+    opacity: 1;
 }
 
-#pull-background .active.carousel-item-end, 
+.carousel-item.active{
+    transition: all 500ms ease-out 0s;
+    opacity: 1;
+}
+
+/* Transition for the exiting item */
 #pull-background .active.carousel-item-start {
-    transition-duration: 1000ms;
+    transition: all 1000ms ease-out 0s;
+    transform: perspective(500vw) translateZ(500vw) translateY(5vw);
+    opacity: 0;
 }
 
+#pull-background .active.carousel-item-end {
+    transition: all 1000ms ease-out 0s;
+    opacity: 0;
+}
 
-#pull-background .carousel-item-next, 
-#pull-background .carousel-item-prev {
-    transition-duration: 1000ms;
+/* transition for the entering item */
+#pull-background .carousel-item-next{
+    transition: all 1000ms ease-out 0s;
+    transform: perspective(100vw) translateZ(-100vw) translateY(50vw);
+    opacity: 0;
 }
 
 #portraits-last {
@@ -143,7 +157,7 @@ body{
         max-width: 100%;
         width: auto;
     }
-    
+
 }
 
 
