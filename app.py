@@ -22,8 +22,13 @@ def pull():
     units = []
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        pool = cur.execute("SELECT id, rarity FROM lyres WHERE id IN (SELECT lyres_id FROM banner_units WHERE banner_id = ?)", request.form.get("bannerID")).fetchall()
+        pool = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)", request.form.get("bannerID")).fetchall()
     for i in range(int(request.form.get("pullNum"))):
         units.append(random.choice(pool))
 
     return render_template("pull.html", units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
+
+
+@app.route("/collection", methods=["GET", "POST"])
+def collection():
+    return render_template("collection.html")
