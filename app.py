@@ -37,9 +37,7 @@ def collection():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity FROM units").fetchall()
-        print(units)
-        collectedUnits = cur.execute("SELECT unit_id, copies FROM collections WHERE user_id = 1").fetchall()
-        print(collectedUnits)
+        collectedUnits = cur.execute("SELECT unit_id, copies FROM collections WHERE user_id = 3").fetchall()
 
         unitList = [x[0] for x in units]
         collectedList = [x[0] for x in collectedUnits]
@@ -49,6 +47,5 @@ def collection():
                 units[i] = units[i] + (True, )
             else:
                 units[i] = units[i] + (False, )
-        print(units)
     
     return render_template("collection.html", units=units, collectedUnits=collectedUnits)
