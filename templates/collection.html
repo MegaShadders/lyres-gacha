@@ -3,6 +3,37 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-hello collections
+<div id="collection-container" class="container mt-4">
+  <div id="collection-row" class="row justify-content-between">
+    {% for unit in units %}
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">    
+        <img src="static/images/units/portraits/{{ unit[0] }}.png">
+      </div>
+    </div>
+    {% endfor %}
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">
+      </div>
+    </div>
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">    
+      </div>
+    </div>
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">    
+      </div>
+    </div>
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">    
+      </div>
+    </div>
+    <div class="col-auto mb-3">
+      <div id="collection-portraits" class="card border-0" style="width: 24rem">    
+      </div>
+    </div>
+  </div>
+
+</div>
 
 {% endblock %}

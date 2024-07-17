@@ -31,4 +31,10 @@ def pull():
 
 @app.route("/collection", methods=["GET", "POST"])
 def collection():
-    return render_template("collection.html")
+
+    units = []
+    with sqlite3.connect("lyres.db") as con:
+        cur = con.cursor()
+        units = cur.execute("SELECT id FROM units").fetchall()
+    
+    return render_template("collection.html", units=units)
