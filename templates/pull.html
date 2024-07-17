@@ -11,7 +11,7 @@
 
             {% for unit in units %}
                 <div class="position-absolute carousel-item" id="portrait-container">
-                    <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
+                    <img src="static/images/units/portraits/{{ unit[0] }}.png">
                 {% if units|length != 1 %}
                 </div>
                 {% endif %}
@@ -21,7 +21,7 @@
                 <div class="position-absolute carousel-item" id="portrait-container">
                     <div id="portraits-last">
                         {% for unit in units %}
-                                <img src="static/images/lyres/portraits/{{ unit[0] }}.png">
+                                <img src="static/images/units/portraits/{{ unit[0] }}.png">
                         {% endfor %}
                     </div>
             {% endif %}        
