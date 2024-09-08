@@ -46,6 +46,6 @@ def collection():
             if unitList[i] in collectedList:
                 units[i] = units[i] + (True, )
             else:
-                units[i] = units[i] + (False, )
+                units[i] = units[i] + (True, ) # Set to Flase when not testing
     
     return render_template("collection.html", units=units, collectedUnits=collectedUnits)
