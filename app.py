@@ -20,11 +20,21 @@ def pull():
         return redirect("/")
     
     units = []
+    
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        pool = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)", request.form.get("bannerID")).fetchall()
-    for i in range(int(request.form.get("pullNum"))):
-        units.append(random.choice(pool))
+        poolSSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SSR'", request.form.get("bannerID")).fetchall()
+        poolSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SR'", request.form.get("bannerID")).fetchall()
+        poolR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'R'", request.form.get("bannerID")).fetchall()
+        rarities = random.choices(["R", "SR", "SSR"], weights=[90, 5.1, 0.6], k= int(request.form.get("pullNum")))
+        print(rarities)
+        for rarity in rarities:
+            if rarity == "R":
+                units.append(random.choice(poolR))
+            elif rarity == "SR":
+                units.append(random.choice(poolSR))
+            else:
+                units.append(random.choice(poolSSR))        
 
     return render_template("pull.html", units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
 
@@ -36,7 +46,7 @@ def collection():
     collectedUnits = []
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        units = cur.execute("SELECT id, rarity FROM units").fetchall()
+        units = cur.execute("SELECT id, rarity FROM units ORDER BY LENGTH(rarity) DESC").fetchall()
         collectedUnits = cur.execute("SELECT unit_id, copies FROM collections WHERE user_id = 3").fetchall()
 
         unitList = [x[0] for x in units]
