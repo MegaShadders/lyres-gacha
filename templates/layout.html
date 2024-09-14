@@ -34,12 +34,20 @@
                             <form action="/collection" method="get">
                                 <button class="nav-link" type="submit">Collection                
                             </form>
-                        </li>                        
+                        </li>
+                                                
                     </ul>
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="#">Log Off</a>
-                        </li>
+                            {% if current_user %}
+                                <img src="{{ current_user.avatar_url }} ">
+                                <p>{{ current_user.username }}</p>
+                                <p>ID: {{ current_user.id }}</p>
+                                <a href="/logout"><button>Log Out</button></a>
+                            {% else %}
+                                <a href="{{oauth_url}}"><button>Login with Discord</button></a>
+                            {% endif %}
+                        </li>  
                     </ul>
                 </div>
             </div>
