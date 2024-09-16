@@ -121,15 +121,5 @@ def collection():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units ORDER BY LENGTH(rarity) DESC) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id;", [session['id']]).fetchall()
-        collectedUnits = cur.execute("SELECT unit_id, copies FROM collections WHERE user_id = ?", (session['id'],)).fetchall()
-
-        unitList = [x[0] for x in units]
-        collectedList = [x[0] for x in collectedUnits]
-
-        for i in range(len(units)):
-            if unitList[i] in collectedList:
-                units[i] = units[i] + (True, )
-            else:
-                units[i] = units[i] + (False, ) # Set to False when not testing
     print(units)
     return render_template("collection.html", current_user=current_user, units=units)
