@@ -32,6 +32,8 @@ def callback():
         #If discord id does not exist insert new user in db
         if cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", (current_user.id,)).fetchone()[0] == 0:
             cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
+            #Create Pity entries
+            cur.execute("INSERT INTO user_pity (user_id, pity_id, count) SELECT ?, id, 0 FROM pity", (current_user.id,))
         session['id'] = current_user.id
     return redirect("/")
 
@@ -55,9 +57,11 @@ def pull():
     
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
+        #TODO Condense into one line
         poolSSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SSR'", request.form.get("bannerID")).fetchall()
         poolSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SR'", request.form.get("bannerID")).fetchall()
         poolR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'R'", request.form.get("bannerID")).fetchall()
+
         pity = cur.execute("SELECT id, rarity, count, maximum FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
         
         counts = [x[2] for x in pity] #Puts the counts for every pity in a list
