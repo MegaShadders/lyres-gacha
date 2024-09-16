@@ -46,6 +46,9 @@ def logout():
 
 @app.route("/pull", methods=["GET", "POST"])
 def pull():
+    if 'token' in session:
+        bearer_client = APIClient(session.get('token'), bearer=True)
+        current_user = bearer_client.users.get_current_user()
     if request.method == "GET":
         return redirect("/")
     if not request.form.get("bannerID"):
@@ -104,12 +107,15 @@ def pull():
         # Update database with new pity counts
         for k in range(len(pity)):
             cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][0], session['id']])  
-    return render_template("pull.html", units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
+    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
 
 
 @app.route("/collection", methods=["GET", "POST"])
 def collection():
-
+    if 'token' in session:
+        bearer_client = APIClient(session.get('token'), bearer=True)
+        current_user = bearer_client.users.get_current_user()
+        
     units = []
     collectedUnits = []
     with sqlite3.connect("lyres.db") as con:
@@ -126,4 +132,4 @@ def collection():
             else:
                 units[i] = units[i] + (False, ) # Set to False when not testing
     
-    return render_template("collection.html", units=units, collectedUnits=collectedUnits)
+    return render_template("collection.html", current_user=current_user, units=units, collectedUnits=collectedUnits)
