@@ -57,11 +57,7 @@ def pull():
     
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        #TODO Condense into one line
-        poolSSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SSR'", request.form.get("bannerID")).fetchall()
-        poolSR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'SR'", request.form.get("bannerID")).fetchall()
-        poolR = cur.execute("SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?) AND rarity = 'R'", request.form.get("bannerID")).fetchall()
-
+        pool = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), session['id']]).fetchall()
         pity = cur.execute("SELECT id, rarity, count, maximum FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
         
         counts = [x[2] for x in pity] #Puts the counts for every pity in a list
@@ -87,20 +83,27 @@ def pull():
             # Roll
             pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)
             if pullRarity[0] == "R":
-                units.append(random.choice(poolR))
+                units.append(random.choice([x for x in pool if x[1] == "R"]))                               
             elif pullRarity[0] == "SR":
-                units.append(random.choice(poolSR))
+                units.append(random.choice([x for x in pool if x[1] == "SR"]))
                 for j in range(len(pity)):
                     if pity[j][1] == "SR":
                         counts[j] = 0
             else:
-                units.append(random.choice(poolSSR))    
+                units.append(random.choice([x for x in pool if x[1] == "SSR"]))    
                 if pity[j][1] == "SSR":
                         counts[j] = 0
+        #Update database with pulled units
+        newIDs = []
+        for unit in units:
+            if unit[2] == None and unit[0] not in newIDs: #First time pulling this unit
+                    cur.execute("INSERT INTO collections (user_id, unit_id, copies) VALUES(?, ?, 0)", [session['id'], unit[0]])
+                    newIDs.append(unit[0])
+            else:
+                cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit[0]])
         # Update database with new pity counts
         for k in range(len(pity)):
-            cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][0], session['id']])   
-
+            cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][0], session['id']])  
     return render_template("pull.html", units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
 
 
