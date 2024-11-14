@@ -1,13 +1,16 @@
 from flask import Flask, render_template, request, redirect, session
+from flask_login import LoginManager
 import random
 import sqlite3
-from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL
+from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY
 from zenora import APIClient
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "verysecret"
+app.config["SECRET_KEY"] = SESSION_KEY
 client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
+login_manager = LoginManager().init_app(app)
+
 
 @app.route("/")
 def index():
@@ -118,6 +121,8 @@ def collection():
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
+    else:
+        return redirect("/")
         
     units = []
     collectedUnits = []
