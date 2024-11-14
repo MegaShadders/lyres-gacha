@@ -10,6 +10,8 @@
 
 # Ignore discord config
 config.py
-__pycache__/config.cpython-311.pyc
+
+# Ignore python chache files
+__pycache__/
 
 
