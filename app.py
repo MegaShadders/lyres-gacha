@@ -130,5 +130,4 @@ def collection():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id ORDER BY LENGTH(rarity) DESC;", [session['id']]).fetchall()
-    print(units)
     return render_template("collection.html", current_user=current_user, units=units)
