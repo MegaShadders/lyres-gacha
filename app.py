@@ -21,10 +21,13 @@ def index():
 
 @app.route("/oauth/callback")
 def callback():
-    code = request.args['code']
-    access_token = client.oauth.get_access_token(code, REDIRECT_URI).access_token
-    session['token'] = access_token
-
+    try:
+        code = request.args['code']
+        access_token = client.oauth.get_access_token(code, REDIRECT_URI).access_token
+        session['token'] = access_token
+    except:
+        return redirect("/")
+    
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         bearer_client = APIClient(session.get('token'), bearer=True)
