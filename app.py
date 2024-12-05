@@ -37,7 +37,7 @@ def callback():
         if cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", (current_user.id,)).fetchone()[0] == 0:
             cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
             #Create Pity entries
-            cur.execute("INSERT INTO user_pity (user_id, pity_id, count) SELECT ?, id, 0 FROM pity", (current_user.id,))
+            cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
         session['id'] = current_user.id
     return redirect("/")
 
