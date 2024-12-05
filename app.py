@@ -67,7 +67,7 @@ def pull():
     
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        pool = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), session['id']]).fetchall()
+        pool = cur.execute("SELECT id, rarity, copies, rateup FROM (SELECT id, rarity, rateup FROM units LEFT JOIN (SELECT unit_id, rateup FROM banner_units WHERE banner_id = ?) ON unit_id = id WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), request.form.get("bannerID"), session['id']]).fetchall()
         pity = cur.execute("SELECT id, rarity, count, maximum FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
         
         counts = [x[2] for x in pity] #Puts the counts for every pity in a list
@@ -93,14 +93,14 @@ def pull():
             # Roll
             pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)
             if pullRarity[0] == "R":
-                units.append(random.choice([x for x in pool if x[1] == "R"]))                               
+                units.append(random.choice([x for x in pool if x[1] == "R"]))  #Random choice between all R units                             
             elif pullRarity[0] == "SR":
-                units.append(random.choice([x for x in pool if x[1] == "SR"]))
+                units.append(random.choice([x for x in pool if x[1] == "SR"])) #Random choice between all SR units
                 for j in range(len(pity)):
                     if pity[j][1] == "SR":
                         counts[j] = 0
             else:
-                units.append(random.choice([x for x in pool if x[1] == "SSR"]))    
+                units.append(random.choice([x for x in pool if x[1] == "SSR"])) #Random choice between all SSR units     
                 if pity[j][1] == "SSR":
                         counts[j] = 0
         #Update database with pulled units
