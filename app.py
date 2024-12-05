@@ -68,20 +68,20 @@ def pull():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         pool = cur.execute("SELECT id, rarity, copies, rateup FROM (SELECT id, rarity, rateup FROM units LEFT JOIN (SELECT unit_id, rateup FROM banner_units WHERE banner_id = ?) ON unit_id = id WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), request.form.get("bannerID"), session['id']]).fetchall()
-        pity = cur.execute("SELECT id, rarity, count, maximum FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
+        pity = cur.execute("SELECT id, rarity, count, maximum, rateup_pity FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
         
         counts = [x[2] for x in pity] #Puts the counts for every pity in a list
         for i in range(int(request.form.get("pullNum"))): #For every pull
             rates=[94.3, 5.1, 0.6] #Set Base Rates
+            rateup = 0 #reset rateup
             #Pity Check
             pityRarity = ""
             for j in range(len(pity)): #Check each pity
-                if counts[j] + 1 == pity[j][3]: #If count + 1 = maximum
+                if counts[j] + 1 >= pity[j][3]: #If count + 1 = maximum
                     if pity[j][1] == "SSR":
                         pityRarity = "SSR"
                     elif pity[j][1] == "SR":
-                        if pityRarity != "SSR": #Ensure you are not overwriting a higher rarity pity
-                            pityRarity = "SR"
+                        pityRarity = "SR"
                 counts[j] = counts[j] + 1
 
                 match pityRarity: #Change rate according to pity met
@@ -91,18 +91,26 @@ def pull():
                         rates = [0, 99.4, 0.6]
                         
             # Roll
-            pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)
-            if pullRarity[0] == "R":
-                units.append(random.choice([x for x in pool if x[1] == "R"]))  #Random choice between all R units                             
-            elif pullRarity[0] == "SR":
-                units.append(random.choice([x for x in pool if x[1] == "SR"])) #Random choice between all SR units
-                for j in range(len(pity)):
-                    if pity[j][1] == "SR":
-                        counts[j] = 0
-            else:
-                units.append(random.choice([x for x in pool if x[1] == "SSR"])) #Random choice between all SSR units     
-                if pity[j][1] == "SSR":
-                        counts[j] = 0
+            pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)[0]
+            for j in range(len(pity)): #For every pity    
+                if pity[j][1] == pullRarity: #If this pull was for the rarity of the pity
+                    counts[j] = 0 #reset pity                   
+                    if pity[j][4] != None: #if a rateup exists
+                        rateup = pity[j][4] #Assign the rateup
+                        if rateup == 0: #If this is not guaranteed 50/50 win
+                            rateup = random.choice([0, 1]) #50% chance to win rateup
+                        #Fix rateup for next pull
+                        if rateup == 1:
+                            pity[j] = (pity[j][0], pity[j][1], pity[j][2], pity[j][3], 0) #if rateup won reset to 0
+                        elif rateup == 0:
+                            pity[j] = (pity[j][0], pity[j][1], pity[j][2], pity[j][3], 1) #if rateup lost (and exists) set to 1 to win the next
+                    else:
+                        rateup = 0 #If a rateup doesn't exist assign 0, the default rateup value in database
+            units.append(random.choice([x for x in pool if x[1] == pullRarity and x[3] == rateup])) #Random choice between applicable units.
+            
+
+                
+                    
         #Update database with pulled units
         newIDs = []
         for unit in units:
@@ -113,7 +121,7 @@ def pull():
                 cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit[0]])
         # Update database with new pity counts
         for k in range(len(pity)):
-            cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][0], session['id']])  
+            cur.execute("UPDATE user_pity SET count = ?, rateup_pity = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][4], pity[k][0], session['id']])  
     return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
 
 
