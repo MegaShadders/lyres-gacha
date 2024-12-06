@@ -19,6 +19,14 @@ body{
     height: 100%;
 }
 
+#banner-background{
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+
 #banner-preview{
     background-color: aqua;
     height: 100%;
@@ -30,6 +38,7 @@ body{
     padding-bottom: 50%;
     text-align: center;
     background-size: cover;  
+    margin: 5% 0;
 }
 
 .carousel-item{

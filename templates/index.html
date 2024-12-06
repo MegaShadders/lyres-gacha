@@ -4,20 +4,15 @@
 
 {% block body %}
     <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
-        <button class="badge" id="banner-item" name="banner-name" style="background-image: url(static/images/standard-banner-thumbnail.png)" value="Standard">
+      {% for banner in banners %}
+        <button class="badge" id="banner-item" name="banner-name" style="background-image: url(static/images/banners/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
+
         </button>
+      {% endfor %}
     </div>
     
-    <div id="banner-preview" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-touch="false" data-bs-pause="false" style="z-index: 0">
-        <div class="carousel-inner" style="height: 100%">
-          <div class="carousel-item active" style="background-image: url(static/images/units/SSR/1.png)">
-          </div>
-          <div class="carousel-item" style="background-image: url(static/images/units/SSR/2.png)">
-          </div>
-          <div class="carousel-item" style="background-image: url(static/images/units/SSR/3.png)">
-          </div>
-        </div>
-      </div>
+    <div id="banner-background" style="background-image: url(static/images/banners/backgrounds/1.png)"></div>
+
 
       <form action="/pull" method="post">
         <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
@@ -44,5 +39,21 @@
         </div>
         <input id="banner-id" type="hidden" name="bannerID" value=1>
       </form>
+
+    <script>
+      function changeBanner() {
+        document.getElementById("banner-background").style.backgroundImage = "url(static/images/banners/backgrounds/" + event.target.value + ".png)";
+        document.getElementById("banner-id").value = event.target.value;
+        var coins = document.getElementsByClassName("fox-coin");
+        for(var i = 0; i < coins.length; i++) {
+          if (event.target.value != 1) {
+            coins[i].src = "static/images/gold-fox-coin.png"
+          }
+          else {
+            coins[i].src = "static/images/silver-fox-coin.png"
+          }
+        }
+      }
+    </script>
 
 {% endblock %}

@@ -12,12 +12,16 @@ client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
 
 @app.route("/")
 def index():
+    with sqlite3.connect("lyres.db") as con:
+        cur = con.cursor()
+        banners = cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
+        print(banners)
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
-        return render_template("index.html", current_user=current_user)
+        return render_template("index.html", current_user=current_user, banners=banners)
 
-    return render_template("index.html", oauth_url=OAUTH_URL)
+    return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
 
 
 @app.route("/oauth/callback")
@@ -54,7 +58,7 @@ def pull():
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
     else:
-        return render_template("index.html", oauth_url=OAUTH_URL)
+        return redirect("/")
     
     if request.method == "GET":
         return redirect("/")
@@ -131,7 +135,7 @@ def collection():
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
     else:
-        return render_template("index.html", oauth_url=OAUTH_URL)
+        return redirect("/")
         
     units = []
     collectedUnits = []
