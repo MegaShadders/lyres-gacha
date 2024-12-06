@@ -69,7 +69,7 @@ body{
     border-color: black !important;
 }
 
-.fox-coin{
+.fox-coin, .fox-coin-constant{
     height: 1.5em;
     width: auto;
 }
