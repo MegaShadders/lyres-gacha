@@ -15,11 +15,10 @@ def index():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         banners = cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
-        print(banners)
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
-        return render_template("index.html", current_user=current_user, banners=banners)
+        return render_template("index.html", current_user=current_user, banners=banners, silver=session['silver'], gold = session['gold'])
 
     return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
 
@@ -45,6 +44,9 @@ def callback():
             #Create Currency Entries
             cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
         session['id'] = current_user.id
+        menuCurrencies = cur.execute("SELECT amount FROM user_currency WHERE user_id = ? AND currency_id <= 2", (current_user.id,)).fetchall()
+        session['silver'] = menuCurrencies[0][0]
+        session['gold'] = menuCurrencies[1][0]
     return redirect("/")
 
 
@@ -128,7 +130,7 @@ def pull():
         # Update database with new pity counts
         for k in range(len(pity)):
             cur.execute("UPDATE user_pity SET count = ?, rateup_pity = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][4], pity[k][0], session['id']])  
-    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"))
+    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), silver=session['silver'], gold = session['gold'])
 
 
 @app.route("/collection", methods=["GET", "POST"])
@@ -144,4 +146,4 @@ def collection():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id ORDER BY LENGTH(rarity) DESC;", [session['id']]).fetchall()
-    return render_template("collection.html", current_user=current_user, units=units)
+    return render_template("collection.html", current_user=current_user, units=units, silver=session['silver'], gold = session['gold'])
