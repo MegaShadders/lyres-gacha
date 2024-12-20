@@ -71,6 +71,14 @@ def pull():
     if not request.form.get("pullNum"):
         return redirect("/")
     
+    #Currency Check
+    if int(request.form.get("bannerID")) == 1:
+        coin = 'silver'
+    else:
+        coin = 'gold'
+    if session[coin] < (160 * int(request.form.get("pullNum"))):
+        return redirect("/") 
+    
     units = []
     
     with sqlite3.connect("lyres.db") as con:
@@ -127,9 +135,15 @@ def pull():
                     newIDs.append(unit[0])
             else:
                 cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit[0]])
+        
         # Update database with new pity counts
         for k in range(len(pity)):
             cur.execute("UPDATE user_pity SET count = ?, rateup_pity = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][4], pity[k][0], session['id']])  
+        
+        #Update database and session with new currency amounts
+        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session[coin] - 1600, current_user.id, int(request.form.get("bannerID"))))
+        session[coin] = session[coin] - 1600
+
     return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), silver=session['silver'], gold = session['gold'])
 
 
