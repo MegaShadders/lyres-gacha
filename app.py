@@ -18,10 +18,10 @@ def index():
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
-        return render_template("index.html", current_user=current_user, banners=banners, silver=session['silver'], gold = session['gold'])
+        return render_template("index.html", current_user=current_user, banners=banners, currencies=session['currencies'])
 
-    return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
-
+    #return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
+    return redirect(OAUTH_URL)
 
 @app.route("/oauth/callback")
 def callback():
@@ -44,9 +44,7 @@ def callback():
             #Create Currency Entries
             cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
         session['id'] = current_user.id
-        menuCurrencies = cur.execute("SELECT amount FROM user_currency WHERE user_id = ? AND currency_id <= 2", (current_user.id,)).fetchall()
-        session['silver'] = menuCurrencies[0][0]
-        session['gold'] = menuCurrencies[1][0]
+        session['currencies'] = cur.execute("SELECT amount FROM user_currency WHERE user_id = ?", (current_user.id,)).fetchall()
     return redirect("/")
 
 
@@ -71,15 +69,12 @@ def pull():
     if not request.form.get("pullNum"):
         return redirect("/")
     
-    #Currency Check
-    if int(request.form.get("bannerID")) == 1:
-        coin = 'silver'
-    else:
-        coin = 'gold'
-    if session[coin] < (160 * int(request.form.get("pullNum"))):
-        return redirect("/") 
-    
     units = []
+    bannerID = int(request.form.get("bannerID"))
+    pullNum = int(request.form.get("pullNum"))
+
+    if session['currencies'][bannerID - 1][0] < (160 * pullNum):
+        return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
@@ -141,10 +136,9 @@ def pull():
             cur.execute("UPDATE user_pity SET count = ?, rateup_pity = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][4], pity[k][0], session['id']])  
         
         #Update database and session with new currency amounts
-        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session[coin] - 1600, current_user.id, int(request.form.get("bannerID"))))
-        session[coin] = session[coin] - 1600
-
-    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), silver=session['silver'], gold = session['gold'])
+        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session['currencies'][bannerID - 1][0] - (160 * pullNum), current_user.id, int(request.form.get("bannerID"))))
+        session['currencies'] = cur.execute("SELECT amount FROM user_currency WHERE user_id = ?", (current_user.id,)).fetchall()
+    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
 
 
 @app.route("/collection", methods=["GET", "POST"])
@@ -160,4 +154,4 @@ def collection():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id ORDER BY LENGTH(rarity) DESC;", [session['id']]).fetchall()
-    return render_template("collection.html", current_user=current_user, units=units, silver=session['silver'], gold = session['gold'])
+    return render_template("collection.html", current_user=current_user, units=units, currencies=session['currencies'])
