@@ -1,6 +1,7 @@
 import sqlite3
 import datetime
 from zenora import APIClient
+from flask import session
 
 
 def load_user_currency(user_id):
@@ -18,4 +19,11 @@ def load_user_currency(user_id):
         #Other Dailies Below
     con.commit()
     return currencies
+
+def load_user(session_currencies):
+    bearer_client = APIClient(session.get('token'), bearer=True)
+    current_user = bearer_client.users.get_current_user()
+    session_currencies = load_user_currency(current_user.id)
+
+    return current_user, session_currencies
 

@@ -13,17 +13,16 @@ client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
 
 @app.route("/")
 def index():
+    if 'token' not in session: 
+        return redirect(OAUTH_URL)
+    current_user, session['currencies'] = user.load_user(session['currencies'])
+
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         banners = cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
-    if 'token' in session:
-        bearer_client = APIClient(session.get('token'), bearer=True)
-        current_user = bearer_client.users.get_current_user()
-        session['currencies'] = user.load_user_currency(current_user.id)
-        return render_template("index.html", current_user=current_user, banners=banners, currencies=session['currencies'])
+        
+    return render_template("index.html", current_user=current_user, banners=banners, currencies=session['currencies'])
 
-    #return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
-    return redirect(OAUTH_URL)
 
 @app.route("/oauth/callback")
 def callback():
@@ -57,12 +56,9 @@ def logout():
 
 @app.route("/pull", methods=["GET", "POST"])
 def pull():
-    if 'token' in session:
-        bearer_client = APIClient(session.get('token'), bearer=True)
-        current_user = bearer_client.users.get_current_user()
-        session['currencies'] = user.load_user_currency(current_user.id)
-    else:
+    if 'token' not in session: 
         return redirect("/")
+    current_user, session['currencies'] = user.load_user(session['currencies'])
     
     if request.method == "GET":
         return redirect("/")
@@ -150,12 +146,9 @@ def pull():
 
 @app.route("/collection", methods=["GET", "POST"])
 def collection():
-    if 'token' in session:
-        bearer_client = APIClient(session.get('token'), bearer=True)
-        current_user = bearer_client.users.get_current_user()
-        session['currencies'] = user.load_user_currency(current_user.id)
-    else:
+    if 'token' not in session: 
         return redirect("/")
+    current_user, session['currencies'] = user.load_user(session['currencies'])
 
     units = []
     with sqlite3.connect("lyres.db") as con:
