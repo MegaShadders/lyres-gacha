@@ -78,7 +78,12 @@ def pull():
     
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        pool = cur.execute("SELECT id, rarity, copies, rateup FROM (SELECT id, rarity, rateup FROM units LEFT JOIN (SELECT unit_id, rateup FROM banner_units WHERE banner_id = ?) ON unit_id = id WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), request.form.get("bannerID"), session['id']]).fetchall()
+        pool = cur.execute("""SELECT id, rarity, copies, rateup
+                            FROM units
+                            INNER JOIN banner_units ON units.id = banner_units.unit_id
+                            LEFT JOIN collections ON banner_units.unit_id = collections.unit_id AND collections.user_id = ?
+                            WHERE banner_id = ?""", (current_user.id, bannerID)).fetchall()
+        #pool = cur.execute("SELECT id, rarity, copies, rateup FROM (SELECT id, rarity, rateup FROM units LEFT JOIN (SELECT unit_id, rateup FROM banner_units WHERE banner_id = ?) ON unit_id = id WHERE id IN (SELECT unit_id FROM banner_units WHERE banner_id = ?)) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id", [request.form.get("bannerID"), request.form.get("bannerID"), session['id']]).fetchall()
         pity = cur.execute("SELECT id, rarity, count, maximum, rateup_pity FROM pity INNER JOIN user_pity ON pity.id = user_pity.pity_id WHERE id IN (SELECT pity_id FROM banner_pity WHERE banner_id = ?) AND user_id = ?", [request.form.get("bannerID"), session['id']]).fetchall()
         
         counts = [x[2] for x in pity] #Puts the counts for every pity in a list
