@@ -3,6 +3,7 @@ import random
 import sqlite3
 from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY
 from zenora import APIClient
+import user
 
 
 app = Flask(__name__)
@@ -18,6 +19,7 @@ def index():
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
+        session['currencies'] = user.load_user_currency(current_user.id)
         return render_template("index.html", current_user=current_user, banners=banners, currencies=session['currencies'])
 
     #return render_template("index.html", oauth_url=OAUTH_URL, banners=banners)
@@ -44,7 +46,6 @@ def callback():
             #Create Currency Entries
             cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
         session['id'] = current_user.id
-        session['currencies'] = cur.execute("SELECT amount FROM user_currency WHERE user_id = ?", (current_user.id,)).fetchall()
     return redirect("/")
 
 
@@ -59,6 +60,7 @@ def pull():
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
+        session['currencies'] = user.load_user_currency(current_user.id)
     else:
         return redirect("/")
     
@@ -151,9 +153,10 @@ def collection():
     if 'token' in session:
         bearer_client = APIClient(session.get('token'), bearer=True)
         current_user = bearer_client.users.get_current_user()
+        session['currencies'] = user.load_user_currency(current_user.id)
     else:
         return redirect("/")
-        
+
     units = []
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
