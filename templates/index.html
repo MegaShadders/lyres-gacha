@@ -5,7 +5,7 @@
 {% block body %}
     <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
       {% for banner in banners %}
-        <button class="badge" id="banner-item" name="banner-name" style="background-image: url(static/images/banners/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
+        <button class="badge" id="banner-item" style="background-image: url(static/images/banners/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
 
         </button>
       {% endfor %}
