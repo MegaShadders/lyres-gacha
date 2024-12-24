@@ -20,7 +20,7 @@ def load_user_currency(user_id):
     con.commit()
     return currencies
 
-def load_user(session_currencies):
+def load_user():
     bearer_client = APIClient(session.get('token'), bearer=True)
     current_user = bearer_client.users.get_current_user()
     session_currencies = load_user_currency(current_user.id)

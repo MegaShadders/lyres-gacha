@@ -15,7 +15,7 @@ client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
 def index():
     if 'token' not in session: 
         return redirect(OAUTH_URL)
-    current_user, session['currencies'] = user.load_user(session['currencies'])
+    current_user, session['currencies'] = user.load_user()
 
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
@@ -58,7 +58,7 @@ def logout():
 def pull():
     if 'token' not in session: 
         return redirect("/")
-    current_user, session['currencies'] = user.load_user(session['currencies'])
+    current_user, session['currencies'] = user.load_user()
     
     if request.method == "GET":
         return redirect("/")
@@ -148,7 +148,7 @@ def pull():
 def collection():
     if 'token' not in session: 
         return redirect("/")
-    current_user, session['currencies'] = user.load_user(session['currencies'])
+    current_user, session['currencies'] = user.load_user()
 
     units = []
     with sqlite3.connect("lyres.db") as con:
