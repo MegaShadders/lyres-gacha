@@ -26,17 +26,22 @@
                     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
                 </div>
                 <div class="d-flex flex-column offcanvas-body justify-content-between" id="menu-navs">
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/">Shrine</a>
-                        </li>                        
-                        <li class="nav-item">
-                            <form action="/collection" method="get">
-                                <button class="nav-link" type="submit">Collection                
-                            </form>
-                        </li>
-                                                
-                    </ul>
+                    <nav class="navbar">
+                        <div class="container">
+                            <a class="navbar-brand" href="/">
+                                <img src="../static/images/menuShrine.png" style="width: 100%;">
+                            </a>
+                            <a class="navbar-brand" href="/collection">
+                                <img src="../static/images/menuCollection.png" style="width: 100%;">
+                            </a>
+                            <a class="navbar-brand" href="/store">
+                                <img src="../static/images/menuStore.png" style="width: 100%;">
+                            </a>
+                            <a class="navbar-brand" href="/">
+                                <img src="../static/images/menuPVP.png" style="width: 100%;">
+                            </a>
+                        </div>
+                    </nav>
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             {% if current_user %}
