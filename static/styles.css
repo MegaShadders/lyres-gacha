@@ -1,12 +1,12 @@
 /* This changes the width for all the offcanvas in the app */
 .offcanvas{
      width: 20% !important;
+     padding: 0 !important;
 } 
 
 #menu-navs{
     text-align: center;
 }
-
 
 html,
 body{
@@ -15,7 +15,7 @@ body{
 
 #banner-list{
     padding: 100px 0px;
-    width: 20% !important;
+    width: 10% !important;
     height: 100%;
 }
 
