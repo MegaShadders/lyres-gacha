@@ -4,6 +4,7 @@
 # Ignore all images
 *.jpg
 *.png
+*.webp
 
 # Ignore .vscode folder
 .vscode/
