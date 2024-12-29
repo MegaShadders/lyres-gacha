@@ -6,13 +6,15 @@
 <div id="store-background">
   <div id="store-container" class="container pt-4">
     <div id="store-row" class="row justify-content-around">
-      {% for i in [160, 800, 1600, 3200, 6400, 12800, 25600, 51200] %}
+      {% for i in [(160, 0.01), (800, 0.04), (1600, 0.07), (3200, 0.13), (6400, 0.23), (12800, 0.40), (25600, 0.65), (51200, 1.00)] %} <!-- Hardcoded in, replace with database later-->
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
-            <img src="../static/images/store/{{ i }}.png">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;" type="button">
+          <img src="../static/images/store/{{ i[0] }}.png" data-bs-toggle="modal" data-bs-target="#purchasePopup" type="button" onclick="updatePopup({{ i[0] }}, {{ i[1] }})">
         </div>
-      </div> 
+      </div>
       {% endfor %}
+    </div> 
+      
       <!-- Empty to fix layout -->
       <div class="col-auto mb-3">
         <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
@@ -33,5 +35,42 @@
     </div>
   </div>
 </div>
+<!-- Modal -->
+<div class="modal fade" id="purchasePopup" tabindex="-1" aria-labelledby="modalLabelPopup" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="popup-title"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <img src="" style="width: 100%" id="purchase-popup-img">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <div id="paypal-button-container"></div>
+        <p id="result-message"></p>
+      </div>
+    </div>
+  </div>
+<!-- Initialize the JS-SDK -->
+<script 
+  src="https://www.paypal.com/sdk/js?client-id=test&buyer-country=GB&currency=GBP&components=buttons&disable-funding=venmo,paylater,card"
+  data-sdk-integration-source="developer-studio">
+</script>
+
+<script src="../static/scripts/paypal.js"></script>
+
+<script>
+  var AMOUNT = "0";
+  var PRICE = "0";
+
+  function updatePopup(amount, price){
+    AMOUNT = amount.toString();
+    PRICE = price.toString();
+    document.getElementById("purchase-popup-img").src = "../static/images/store/" + amount + ".png";
+    document.getElementById("popup-title").innerText = "Purchase " + amount + " Gold Fox Coins";
+  }
+</script>
 
 {% endblock %}
