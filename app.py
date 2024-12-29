@@ -155,3 +155,12 @@ def collection():
         cur = con.cursor()
         units = cur.execute("SELECT id, rarity, copies FROM (SELECT id, rarity FROM units) LEFT JOIN (SELECT unit_id, copies FROM collections WHERE user_id = ?) ON unit_id = id ORDER BY LENGTH(rarity) DESC;", [session['id']]).fetchall()
     return render_template("collection.html", current_user=current_user, units=units, currencies=session['currencies'])
+
+
+@app.route("/store", methods=["GET", "POST"])
+def store():
+    if 'token' not in session:
+        return redirect("/")
+    current_user, session['currencies'] = user.load_user()
+
+    return render_template("store.html", current_user=current_user, currencies=session['currencies'])
