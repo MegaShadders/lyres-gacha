@@ -1,14 +1,54 @@
 from flask import Flask, render_template, request, redirect, session
 import random
 import sqlite3
-from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY
+from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
 from zenora import APIClient
 import user
+
+import logging
+import os
+from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
+from paypalserversdk.logging.configuration.api_logging_configuration import (
+    LoggingConfiguration,
+    RequestLoggingConfiguration,
+    ResponseLoggingConfiguration,
+)
+from paypalserversdk.paypal_serversdk_client import PaypalServersdkClient
+from paypalserversdk.controllers.orders_controller import OrdersController
+from paypalserversdk.controllers.payments_controller import PaymentsController
+from paypalserversdk.models.amount_with_breakdown import AmountWithBreakdown
+from paypalserversdk.models.checkout_payment_intent import CheckoutPaymentIntent
+from paypalserversdk.models.order_request import OrderRequest
+from paypalserversdk.models.purchase_unit_request import PurchaseUnitRequest
+from paypalserversdk.api_helper import ApiHelper
 
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = SESSION_KEY
 client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
+
+paypal_client: PaypalServersdkClient = PaypalServersdkClient(
+    client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
+        o_auth_client_id=PAYPAL_CLIENT_ID,
+        o_auth_client_secret=PAYPAL_CLIENT_SECRET,
+    ),
+    logging_configuration=LoggingConfiguration(
+        log_level=logging.INFO,
+        # Disable masking of sensitive headers for Sandbox testing.
+        # This should be set to True (the default if unset)in production.
+        mask_sensitive_headers=False,
+        request_logging_config=RequestLoggingConfiguration(
+            log_headers=True, log_body=True
+        ),
+        response_logging_config=ResponseLoggingConfiguration(
+            log_headers=True, log_body=True
+        ),
+    ),
+)
+
+orders_controller: OrdersController = paypal_client.orders
+payments_controller: PaymentsController = paypal_client.payments
+
 
 
 @app.route("/")
@@ -164,3 +204,48 @@ def store():
     current_user, session['currencies'] = user.load_user()
 
     return render_template("store.html", current_user=current_user, currencies=session['currencies'])
+
+
+"""
+Create an order to start the transaction.
+
+@see https://developer.paypal.com/docs/api/orders/v2/#orders_create
+"""
+@app.route("/api/orders", methods=["POST"])
+def create_order():
+    request_body = request.get_json()
+    # use the cart information passed from the front-end to calculate the order amount detals
+    cart = request_body["cart"]
+    order = orders_controller.orders_create(
+        {
+            "body": OrderRequest(
+                intent=CheckoutPaymentIntent.CAPTURE,
+                purchase_units=[
+                    PurchaseUnitRequest(
+                        amount=AmountWithBreakdown(
+                            currency_code="GBP",
+                            value=cart[0]['price'],
+                        ),
+
+                    )
+                ],
+
+            )
+        }
+    )
+    return ApiHelper.json_serialize(order.body)
+
+
+
+"""
+
+Capture payment for the created order to complete the transaction.
+
+@see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
+"""
+@app.route("/api/orders/<order_id>/capture", methods=["POST"])
+def capture_order(order_id):
+    order = orders_controller.orders_capture(
+        {"id": order_id, "prefer": "return=representation"}
+    )
+    return ApiHelper.json_serialize(order.body)
