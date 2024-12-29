@@ -1,0 +1,37 @@
+{% extends "layout.html" %}
+
+{% block title %}: Shrine{% endblock %} 
+
+{% block body %}
+<div id="store-background">
+  <div id="store-container" class="container pt-4">
+    <div id="store-row" class="row justify-content-around">
+      {% for i in [160, 800, 1600, 3200, 6400, 12800, 25600, 51200] %}
+      <div class="col-auto mb-3">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+            <img src="../static/images/store/{{ i }}.png">
+        </div>
+      </div> 
+      {% endfor %}
+      <!-- Empty to fix layout -->
+      <div class="col-auto mb-3">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        </div>
+      </div> 
+      <div class="col-auto mb-3">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        </div>
+      </div> 
+      <div class="col-auto mb-3">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        </div>
+      </div> 
+      <div class="col-auto mb-3">
+        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        </div>
+      </div> 
+    </div>
+  </div>
+</div>
+
+{% endblock %}
