@@ -6,7 +6,6 @@ from zenora import APIClient
 import user
 
 import logging
-import os
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
 from paypalserversdk.logging.configuration.api_logging_configuration import (
     LoggingConfiguration,
