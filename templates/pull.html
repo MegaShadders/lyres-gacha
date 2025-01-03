@@ -6,12 +6,12 @@
     <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/flowers.jpg)" data-bs-wrap="false">
         <div class="carousel-inner" style="height: 100%;">
             <div class="position-absolute carousel-item active" id="portrait-container">
-                <img src="static/images/gate.png">
+                <img src="https://lyres-gacha-resources.s3.eu-west-2.amazonaws.com/images/gate.png">
             </div>
 
             {% for unit in units %}
                 <div class="position-absolute carousel-item" id="portrait-container">
-                    <img src="static/images/units/portraits/{{ unit[0] }}.png">
+                    <img src="https://lyres-gacha-resources.s3.eu-west-2.amazonaws.com/images/units/portraits/{{ unit[0] }}.png">
                 {% if units|length != 1 %}
                 </div>
                 {% endif %}
@@ -21,7 +21,7 @@
                 <div class="position-absolute carousel-item" id="portrait-container">
                     <div id="portraits-last">
                         {% for unit in units %}
-                                <img src="static/images/units/portraits/{{ unit[0] }}.png">
+                                <img src="https://lyres-gacha-resources.s3.eu-west-2.amazonaws.com/images/units/portraits/{{ unit[0] }}.png">
                         {% endfor %}
                     </div>
             {% endif %}        

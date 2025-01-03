@@ -194,7 +194,7 @@ body{
     left: 0px;
     z-index: -10;
     background-attachment: fixed;
-    background-image: url(images/storeBG.webp);
+    background-image: url(https://lyres-gacha-resources.s3.eu-west-2.amazonaws.com/images/storeBG.webp);
 }
 
 #store-container {
