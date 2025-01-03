@@ -15,4 +15,5 @@ config.py
 # Ignore python chache files
 __pycache__/
 
-
+# Ignore database
+lyres.db
