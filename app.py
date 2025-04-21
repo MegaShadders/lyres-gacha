@@ -4,6 +4,7 @@ import sqlite3
 from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
 from zenora import APIClient
 import user
+import sqlite_helper
 
 import logging
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
@@ -114,7 +115,7 @@ def pull():
         return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
-        con.row_factory = sqlite3.Row
+        con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
         pool = cur.execute("""SELECT id, rarity, copies, rateup
                             FROM units
@@ -131,26 +132,22 @@ def pull():
                              ) 
                              AND user_id = ?""", [request.form.get("bannerID"), session['id']]).fetchall()
         
-        counts = [x[2] for x in pity] #Puts the counts for every pity in a list
         for i in range(int(request.form.get("pullNum"))): #For every pull
             rates=[94.3, 5.1, 0.6] #Set Base Rates
             rateup = 0 #reset rateup
             #Pity Check
-            pityRarity = ""
-            for j in range(len(pity)): #Check each pity
-                if counts[j] + 1 >= pity[j][3]: #If count + 1 = maximum
-                    if pity[j][1] == "SSR":
-                        pityRarity = "SSR"
-                    elif pity[j][1] == "SR":
-                        pityRarity = "SR"
-                counts[j] = counts[j] + 1
+            pities =  sorted(pities, key=lambda x: len(x["rarity"]), reverse=True)#Sort pity by rarity so the highest priority pities will be processed first for early breaks
+            for pity in pities:
+                #If pity wont be hit this pull, continue to next iteration
+                if pity["count"] + 1 < pity["maximum"]:
+                    continue
+                #If pity is hit, change rate according to rarity
+                if pity["rarity"] == "SSR":
+                    rates = [0, 0, 100]
+                elif pity["rarity"] == "SR":
+                    rates = [0, 99.4, 0.6]
+                break
 
-                match pityRarity: #Change rate according to pity met
-                    case "SSR":
-                        rates = [0, 0, 100]
-                    case "SR":
-                        rates = [0, 99.4, 0.6]
-                        
             # Roll
             pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)[0]
             for j in range(len(pity)): #For every pity    
