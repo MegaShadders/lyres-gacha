@@ -97,24 +97,27 @@ def logout():
     return redirect("/")
 
 
-@app.route("/pull", methods=["GET", "POST"])
+@app.route("/pull", methods=["POST"])
 def pull():
+    #check user logged in
     if 'token' not in session: 
         return redirect("/")
     current_user, session['currencies'] = user.load_user()
     
-    if request.method == "GET":
+    if not request.form.get("bannerID") or not request.form.get("pullNum"):
         return redirect("/")
-    if not request.form.get("bannerID"):
-        return redirect("/")
-    if not request.form.get("pullNum"):
-        return redirect("/")
-    
-    units = []
-    bannerID = int(request.form.get("bannerID"))
-    pullNum = int(request.form.get("pullNum"))
 
-    if session['currencies'][bannerID - 1][0] < (160 * pullNum):
+    
+    pulledUnits = []
+    try: 
+        bannerID = int(request.form.get("bannerID"))
+        pullNum = int(request.form.get("pullNum"))
+    except (TypeError, ValueError):
+        return redirect("/")
+
+
+    #TODO using bannerID - 1 will not work once another banner is created
+    if session['currencies'][bannerID - 1][0] < (PULL_COST * pullNum): 
         return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
@@ -125,7 +128,7 @@ def pull():
                             INNER JOIN banner_units ON units.id = banner_units.unit_id
                             LEFT JOIN collections ON banner_units.unit_id = collections.unit_id AND collections.user_id = ?
                             WHERE banner_id = ?""", (current_user.id, bannerID)).fetchall()
-        pities = cur.execute("""SELECT id, rarity, count, maximum, rateup_pity 
+        pities = cur.execute("""SELECT id, rarity, count, maximum, rateup_exists
                              FROM pity 
                              INNER JOIN user_pity ON pity.id = user_pity.pity_id 
                              WHERE id IN (
@@ -134,61 +137,55 @@ def pull():
                                 WHERE banner_id = ?
                              ) 
                              AND user_id = ?""", [request.form.get("bannerID"), session['id']]).fetchall()
-        
-        for i in range(int(request.form.get("pullNum"))): #For every pull
+
+        for i in range(pullNum): #For every pull
             rates=[94.3, 5.1, 0.6] #Set Base Rates
-            rateup = 0 #reset rateup
+            rateup = 0 #reset rateup flag
             #Pity Check
-            pities =  sorted(pities, key=lambda x: len(x["rarity"]), reverse=True)#Sort pity by rarity so the highest priority pities will be processed first for early breaks
+            pities =  sorted(pities, key=lambda x: len(x["rarity"]))#Sort pity by rarity so the highest priority pities will be processed last
             for pity in pities:
-                #If pity wont be hit this pull, continue to next iteration
+                #If pity wont be hit this pull, continue to next pity
                 if pity["count"] + 1 < pity["maximum"]:
+                    pity["count"] = pity["count"] + 1
                     continue
                 #If pity is hit, change rate according to rarity
                 if pity["rarity"] == "SSR":
                     rates = [0, 0, 100]
                 elif pity["rarity"] == "SR":
                     rates = [0, 99.4, 0.6]
-                break
 
-            # Roll
-            pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)[0]
-            for j in range(len(pity)): #For every pity    
-                if pity[j][1] == pullRarity: #If this pull was for the rarity of the pity
-                    counts[j] = 0 #reset pity                   
-                    if pity[j][4] != None: #if a rateup exists
-                        rateup = pity[j][4] #Assign the rateup
-                        if rateup == 0: #If this is not guaranteed 50/50 win
-                            rateup = random.choice([0, 1]) #50% chance to win rateup
-                        #Fix rateup for next pull
-                        if rateup == 1:
-                            pity[j] = (pity[j][0], pity[j][1], pity[j][2], pity[j][3], 0) #if rateup won reset to 0
-                        elif rateup == 0:
-                            pity[j] = (pity[j][0], pity[j][1], pity[j][2], pity[j][3], 1) #if rateup lost (and exists) set to 1 to win the next
-                    else:
-                        rateup = 0 #If a rateup doesn't exist assign 0, the default rateup value in database
-            units.append(random.choice([x for x in pool if x[1] == pullRarity and x[3] == rateup])) #Random choice between applicable units.
+                if pity["rateup_exists"] != None:
+                    rateup = 1
+                pity["count"] = 0
+
             
 
-                
-                    
+            #Roll Rarity
+            pullRarity = random.choices(["R", "SR", "SSR"], weights=rates)[0]  
+            for pity in pities:
+                if pity["rateup_exists"] != None and pity["rarity"] == pullRarity and random.choice([0, 1]) == 1: 
+                    #50% to set rateup flag to 1 if a rateup exists and the rarity is for this pity
+                    rateup = 1
+
+            #Roll Unit  
+            pulledUnits.append(random.choice([unit for unit in pool if unit["rarity"] == pullRarity and unit["rateup"] == rateup])) #Random choice between applicable units.
+          
         #Update database with pulled units
-        newIDs = []
-        for unit in units:
-            if unit[2] == None and unit[0] not in newIDs: #First time pulling this unit
-                    cur.execute("INSERT INTO collections (user_id, unit_id, copies) VALUES(?, ?, 0)", [session['id'], unit[0]])
-                    newIDs.append(unit[0])
+        for unit in pulledUnits:
+            if unit["copies"] == None: #First time pulling this unit
+                    cur.execute("INSERT INTO collections (user_id, unit_id, copies) VALUES(?, ?, 0)", [session['id'], unit["id"]])
+                    unit["copies"] = 0 #manually change copies so this isn't triggered again in the same pull
             else:
-                cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit[0]])
+                cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit["id"]])
         
         # Update database with new pity counts
-        for k in range(len(pity)):
-            cur.execute("UPDATE user_pity SET count = ?, rateup_pity = ? WHERE pity_id = ? AND user_id = ?", [counts[k], pity[k][4], pity[k][0], session['id']])  
+        for pity in pities:
+            cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [pity["count"], pity["id"], session['id']])  
         
         #Update database and session with new currency amounts
-        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session['currencies'][bannerID - 1][0] - (160 * pullNum), current_user.id, int(request.form.get("bannerID"))))
-        session['currencies'] = cur.execute("SELECT amount FROM user_currency WHERE user_id = ?", (current_user.id,)).fetchall()
-    return render_template("pull.html", current_user=current_user, units=units, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
+        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session['currencies'][bannerID - 1][0] - (PULL_COST * pullNum), current_user.id, int(request.form.get("bannerID"))))
+        current_user, session['currencies'] = user.load_user()
+    return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
 
 
 @app.route("/collection", methods=["GET", "POST"])
