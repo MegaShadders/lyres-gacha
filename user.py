@@ -1,5 +1,4 @@
 import sqlite3
-import datetime
 from zenora import APIClient
 from flask import session
 
