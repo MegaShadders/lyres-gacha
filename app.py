@@ -50,6 +50,9 @@ orders_controller: OrdersController = paypal_client.orders
 payments_controller: PaymentsController = paypal_client.payments
 
 
+PULL_COST = 160
+
+
 
 @app.route("/")
 def index():
