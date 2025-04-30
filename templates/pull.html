@@ -3,10 +3,10 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-    <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/{% if "SSR" in units | map(attribute="rarity") | list %}red{% endif %}flowers.jpg)" data-bs-wrap="false">
+    <div class="position-relative carousel slide" id="pull-background" style="background-image: url(static/images/pull/{% if "SSR" in units | map(attribute="rarity") | list %}red{% endif %}flowers.jpg)" data-bs-wrap="false">
         <div class="carousel-inner" style="height: 100%;">
             <div class="position-absolute carousel-item active" id="portrait-container">
-                <img src="static/images/{% if "SSR" in units | map(attribute="rarity") | list %}gold{% elif "SR" in units | map(attribute="rarity") | list %}silver{% endif %}gate.png">
+                <img src="static/images/pull/{% if "SSR" in units | map(attribute="rarity") | list %}gold{% elif "SR" in units | map(attribute="rarity") | list %}silver{% endif %}gate.png">
             </div>
 
             {% for unit in units %}

@@ -5,13 +5,13 @@
 {% block body %}
     <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
       {% for banner in banners %}
-        <button class="badge" id="banner-item" style="background-image: url(static/images/banners/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
+        <button class="badge" id="banner-item" style="background-image: url(static/images/shrine/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
 
         </button>
       {% endfor %}
     </div>
     
-    <div id="banner-background" style="background-image: url(static/images/banners/backgrounds/1.png)"></div>
+    <div id="banner-background" style="background-image: url(static/images/shrine/backgrounds/1.png)"></div>
 
 
       <form action="/pull" method="post">
@@ -20,7 +20,7 @@
             <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">1x Pull</h1>
             <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill">
               <div class="fs-4 position-relative py-2 px-4 border border-secondary rounded-pill cost-marker" style="margin-bottom: 60%;">
-                <img src="static/images/silver-fox-coin.png" class="fox-coin">
+                <img src="static/images/ui/silver-fox-coin.png" class="fox-coin">
                 160
                 <svg width="1em" height="1em" viewBox="0 0 16 16" class="position-absolute top-100 start-50 translate-middle mt-1" fill="var(--bs-light)" xmlns="http://www.w3.org/2000/svg"><path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
               </div>
@@ -30,7 +30,7 @@
             <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">10x Pull</h1>
             <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill">
               <div class="fs-4 position-relative py-2 px-4 border border-secondary rounded-pill cost-marker" style="margin-bottom: 55%;">
-                <img src="static/images/silver-fox-coin.png" class="fox-coin">
+                <img src="static/images/ui/silver-fox-coin.png" class="fox-coin">
                 1600
                 <svg width="1em" height="1em" viewBox="0 0 16 16" class="position-absolute top-100 start-50 translate-middle mt-1" fill="var(--bs-light)" xmlns="http://www.w3.org/2000/svg"><path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
               </div>
@@ -42,15 +42,15 @@
 
     <script>
       function changeBanner() {
-        document.getElementById("banner-background").style.backgroundImage = "url(static/images/banners/backgrounds/" + event.target.value + ".png)";
+        document.getElementById("banner-background").style.backgroundImage = "url(static/images/shrine/backgrounds/" + event.target.value + ".png)";
         document.getElementById("banner-id").value = event.target.value;
         var coins = document.getElementsByClassName("fox-coin");
         for(var i = 0; i < coins.length; i++) {
           if (event.target.value != 1) {
-            coins[i].src = "static/images/gold-fox-coin.png"
+            coins[i].src = "static/images/ui/gold-fox-coin.png"
           }
           else {
-            coins[i].src = "static/images/silver-fox-coin.png"
+            coins[i].src = "static/images/ui/silver-fox-coin.png"
           }
         }
       }

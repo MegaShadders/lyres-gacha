@@ -194,7 +194,7 @@ body{
     left: 0px;
     z-index: -10;
     background-attachment: fixed;
-    background-image: url(images/storeBG.png);
+    background-image: url(images/store/storeBG.png);
 }
 
 #store-container {
@@ -218,7 +218,7 @@ body{
     left: 0px;
     z-index: -10;
     background-attachment: fixed;
-    background-image: url(images/missionsBG.png);
+    background-image: url(images/missions/missionsBG.jpg);
 }
 
 #missions-container {
