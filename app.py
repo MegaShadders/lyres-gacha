@@ -261,3 +261,12 @@ def capture_order(order_id):
         {"id": order_id, "prefer": "return=representation"}
     )
     return ApiHelper.json_serialize(order.body)
+
+
+@app.route("/missions", methods=["GET", "POST"])
+def missions():
+    if 'token' not in session:
+        return redirect("/")
+    current_user, session['currencies'] = user.load_user()
+
+    return render_template("missions.html", current_user=current_user, currencies=session['currencies'])
