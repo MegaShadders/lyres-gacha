@@ -190,7 +190,7 @@ def pull():
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
 
 
-@app.route("/collection", methods=["GET", "POST"])
+@app.route("/collection", methods=["GET"])
 def collection():
     if 'token' not in session: 
         return redirect("/")
