@@ -271,4 +271,23 @@ def missions():
         return redirect("/")
     current_user, session['currencies'] = user.load_user()
 
-    return render_template("missions.html", current_user=current_user, currencies=session['currencies'])
+    missions = user.load_user_missions(session["id"]) #Load user missions
+
+    if request.method == "GET": #If GET, load page
+        return render_template("missions.html", current_user=current_user, currencies=session['currencies'], missions=missions)
+
+    #If POST, mission has been claimed
+    if not request.form.get("mission_id"): #If doesn't exist, exit
+        return redirect("/missions")
+    
+    #Get the claimed mission id from form
+    claimed_mission = next((mission for mission in missions if mission["id"] == int(request.form.get("mission_id"))), None)
+    try:
+        if claimed_mission["claimable"] == 0: #If not claimable, exit
+            return redirect("/missions")
+    except: #If None, exit
+        return redirect("/missions")
+    
+    #Claim Mission
+    sqlite_helper.claim_mission(session["id"], claimed_mission)
+    return redirect("/missions")
