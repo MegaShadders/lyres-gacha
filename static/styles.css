@@ -230,4 +230,6 @@ body{
 
 #missions-item{
     background-color: rgb(255, 255, 255);
+    margin: 5%;
+    padding: 1%
 }
