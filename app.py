@@ -87,6 +87,8 @@ def callback():
             cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
             #Create Currency Entries
             cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
+            #Create Mission Entries
+            cur.execute("INSERT INTO user_missions (user_id, missions_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
         session['id'] = current_user.id
     return redirect("/")
 
