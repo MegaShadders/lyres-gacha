@@ -227,3 +227,13 @@ body{
     background-color: rgba(122, 122, 122, 0.5);
     overflow: auto;
 }
+
+/* Coin Hover Pop */
+.fox-coin, .fox-coin-constant{
+    transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.fox-coin:hover, .fox-coin-constant:hover {
+    transform: scale(1.3) rotate(5deg);
+    filter: brightness(1.2);
+}
