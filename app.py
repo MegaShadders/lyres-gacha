@@ -214,8 +214,12 @@ def collection():
         if not request.form.get("id") or not request.form.get("sacrificeAmount"):
             return redirect("/")
         
-        sacriID = int(request.form.get("id"))
-        sacriAmt = int(request.form.get("sacrificeAmount"))
+        try: 
+            sacriID = int(request.form.get("id"))
+            sacriAmt = int(request.form.get("sacrificeAmount"))
+        except (TypeError, ValueError):
+            return redirect("/")
+        
 
         with sqlite3.connect("lyres.db") as con:
             con.row_factory = sqlite_helper.dict_factory
@@ -317,12 +321,12 @@ def missions():
     if not request.form.get("mission_id"): #If doesn't exist, exit
         return redirect("/missions")
     
-    #Get the claimed mission id from form
-    claimed_mission = next((mission for mission in missions if mission["id"] == int(request.form.get("mission_id"))), None)
     try:
+        #Get the claimed mission id from form
+        claimed_mission = next((mission for mission in missions if mission["id"] == int(request.form.get("mission_id"))), None)
         if claimed_mission["claimable"] == 0: #If not claimable, exit
             return redirect("/missions")
-    except: #If None, exit
+    except: #If None, or int conversion fails, exit
         return redirect("/missions")
     
     #Claim Mission
