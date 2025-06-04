@@ -4,6 +4,12 @@ def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
     return {key: value for key, value in zip(fields, row)}
 
+def change_currency(amount, user_id, currency_id):
+    with sqlite3.connect("lyres.db") as con:
+        cur = con.cursor()
+        cur.execute("UPDATE user_currency SET amount = amount + ? WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
+
+
 def claim_mission(user_id, mission):
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
