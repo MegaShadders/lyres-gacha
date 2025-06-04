@@ -58,13 +58,13 @@ PULL_COST = 160
 def index():
     if 'token' not in session: 
         return redirect(OAUTH_URL)
-    current_user, session['currencies'] = user.load_user()
+    current_user, currencies = user.load_user()
 
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         banners = cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
         
-    return render_template("index.html", current_user=current_user, banners=banners, currencies=session['currencies'])
+    return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies)
 
 
 @app.route("/oauth/callback")
@@ -186,15 +186,15 @@ def pull():
         
         #Update database and session with new currency amounts
         cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session['currencies'][bannerID - 1][0] - (PULL_COST * pullNum), current_user.id, int(request.form.get("bannerID"))))
-        current_user, session['currencies'] = user.load_user()
-    return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
+        current_user, currencies = user.load_user()
+    return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
 
 
 @app.route("/collection", methods=["GET", "POST"])
 def collection():
     if 'token' not in session: 
         return redirect("/")
-    current_user, session['currencies'] = user.load_user()
+    current_user, currencies = user.load_user()
 
     if request.method == "GET":
         units = []
@@ -209,7 +209,7 @@ def collection():
                                     WHERE user_id = ?
                                 ) ON unit_id = id 
                                 ORDER BY LENGTH(rarity) DESC;""", [session['id']]).fetchall()
-        return render_template("collection.html", current_user=current_user, units=units, currencies=session['currencies'])
+        return render_template("collection.html", current_user=current_user, units=units, currencies=currencies)
     elif request.method == "POST":
         if not request.form.get("id") or not request.form.get("sacrificeAmount"):
             return redirect("/")
@@ -252,9 +252,9 @@ def collection():
 def store():
     if 'token' not in session:
         return redirect("/")
-    current_user, session['currencies'] = user.load_user()
+    current_user, currencies = user.load_user()
 
-    return render_template("store.html", current_user=current_user, currencies=session['currencies'])
+    return render_template("store.html", current_user=current_user, currencies=currencies)
 
 
 """
@@ -306,12 +306,12 @@ def capture_order(order_id):
 def missions():
     if 'token' not in session:
         return redirect("/")
-    current_user, session['currencies'] = user.load_user()
+    current_user, currencies = user.load_user()
 
     missions = user.load_user_missions(session["id"]) #Load user missions
 
     if request.method == "GET": #If GET, load page
-        return render_template("missions.html", current_user=current_user, currencies=session['currencies'], missions=missions)
+        return render_template("missions.html", current_user=current_user, currencies=currencies, missions=missions)
 
     #If POST, mission has been claimed
     if not request.form.get("mission_id"): #If doesn't exist, exit
