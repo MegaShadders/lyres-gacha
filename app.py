@@ -104,7 +104,7 @@ def pull():
     #check user logged in
     if 'token' not in session: 
         return redirect("/")
-    current_user, session['currencies'] = user.load_user()
+    current_user, currencies = user.load_user()
     
     if not request.form.get("bannerID") or not request.form.get("pullNum"):
         return redirect("/")
@@ -119,7 +119,8 @@ def pull():
 
 
     #TODO using bannerID - 1 will not work once another banner is created
-    if session['currencies'][bannerID - 1][0] < (PULL_COST * pullNum): 
+    if currencies[bannerID-1]["amount"] < (PULL_COST * pullNum):
+    #if session['currencies'][bannerID - 1][0] < (PULL_COST * pullNum): 
         return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
@@ -185,7 +186,7 @@ def pull():
             cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [pity["count"], pity["id"], session['id']])  
         
         #Update database and session with new currency amounts
-        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (session['currencies'][bannerID - 1][0] - (PULL_COST * pullNum), current_user.id, int(request.form.get("bannerID"))))
+        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (currencies[bannerID - 1]["amount"] - (PULL_COST * pullNum), current_user.id, bannerID))
         current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
 
