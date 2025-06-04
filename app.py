@@ -190,28 +190,65 @@ def pull():
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=session['currencies'])
 
 
-@app.route("/collection", methods=["GET"])
+@app.route("/collection", methods=["GET", "POST"])
 def collection():
     if 'token' not in session: 
         return redirect("/")
     current_user, session['currencies'] = user.load_user()
 
-    units = []
-    with sqlite3.connect("lyres.db") as con:
-        con.row_factory = sqlite_helper.dict_factory
-        cur = con.cursor()
-        units = cur.execute("""SELECT id, rarity, copies 
-                            FROM (SELECT id, rarity FROM units) 
-                            LEFT JOIN (
-                                SELECT unit_id, copies 
-                                FROM collections 
-                                WHERE user_id = ?
-                            ) ON unit_id = id 
-                            ORDER BY LENGTH(rarity) DESC;""", [session['id']]).fetchall()
-    return render_template("collection.html", current_user=current_user, units=units, currencies=session['currencies'])
+    if request.method == "GET":
+        units = []
+        with sqlite3.connect("lyres.db") as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            units = cur.execute("""SELECT id, rarity, copies 
+                                FROM (SELECT id, rarity FROM units) 
+                                LEFT JOIN (
+                                    SELECT unit_id, copies 
+                                    FROM collections 
+                                    WHERE user_id = ?
+                                ) ON unit_id = id 
+                                ORDER BY LENGTH(rarity) DESC;""", [session['id']]).fetchall()
+        return render_template("collection.html", current_user=current_user, units=units, currencies=session['currencies'])
+    elif request.method == "POST":
+        if not request.form.get("id") or not request.form.get("sacrificeAmount"):
+            return redirect("/")
+        
+        sacriID = int(request.form.get("id"))
+        sacriAmt = int(request.form.get("sacrificeAmount"))
+
+        with sqlite3.connect("lyres.db") as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            sacriUnit = cur.execute("""SELECT id, rarity, copies 
+                                FROM (SELECT id, rarity FROM units) 
+                                LEFT JOIN (
+                                    SELECT unit_id, copies 
+                                    FROM collections 
+                                    WHERE user_id = ?
+                                ) ON unit_id = id 
+                                WHERE id = ?
+                                ORDER BY LENGTH(rarity) DESC;""", [session['id'], sacriID]).fetchone()
+        
+        if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
+            return redirect("/")
+        
+        rarity_map = {"SSR": 2, "SR": 1, "R": 0}
+        rarityMod = rarity_map.get(sacriUnit["rarity"])
+
+        exponentialAmt = min(sacriAmt, 5) #The amount of sacrifices subject to exponentially increasing rewards, up to 5
+        linearAmt = max(sacriAmt-5, 0) #The overflow of sacrifices subject to linearly increasing rewards
+        exponentialReward =  (PULL_COST * 2**rarityMod) * 2**(exponentialAmt-1) #160*2^{0, 1, 2} * 2^{0-5}
+        linearReward = linearAmt * exponentialReward # 0 if sacriAmt <= 5
+        reward = exponentialReward + linearReward
+
+        sqlite_helper.sacrifice_copies(sacriUnit, session["id"], sacriAmt)
+        sqlite_helper.change_currency(reward, session["id"], min(1, rarityMod)+1) #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index adjustment
 
 
-@app.route("/store", methods=["GET", "POST"])
+        return redirect("/collection")
+
+@app.route("/store", methods=["GET"])
 def store():
     if 'token' not in session:
         return redirect("/")
