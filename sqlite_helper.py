@@ -16,3 +16,11 @@ def claim_mission(user_id, mission):
         cur.execute("UPDATE user_missions SET claimable = 0 WHERE user_id = ? AND missions_id = ?", [user_id, mission["id"]])
         change_currency([mission["reward"], user_id, mission["currency_id"]])
 
+def sacrifice_copies(sacriUnit, user_id, sacriAmt):
+    with sqlite3.connect("lyres.db") as con:
+        cur = con.cursor()
+        cur.execute("""UPDATE collections 
+                    SET copies = copies - ? 
+                    WHERE user_id = ? AND unit_id = ?;"""
+                    , [sacriAmt, user_id, sacriUnit["id"]])
+    
