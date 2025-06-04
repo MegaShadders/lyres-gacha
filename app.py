@@ -76,20 +76,14 @@ def callback():
     except:
         return redirect("/")
     
+    bearer_client = APIClient(session.get('token'), bearer=True)
+    current_user = bearer_client.users.get_current_user()
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
-        bearer_client = APIClient(session.get('token'), bearer=True)
-        current_user = bearer_client.users.get_current_user()
         #If discord id does not exist insert new user in db
         if cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", (current_user.id,)).fetchone()[0] == 0:
-            cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
-            #Create Pity Entries
-            cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
-            #Create Currency Entries
-            cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
-            #Create Mission Entries
-            cur.execute("INSERT INTO user_missions (user_id, missions_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
-        session['id'] = current_user.id
+            user.create_new_user(current_user)
+    session['id'] = current_user.id
     return redirect("/")
 
 
@@ -120,7 +114,6 @@ def pull():
 
     #TODO using bannerID - 1 will not work once another banner is created
     if currencies[bannerID-1]["amount"] < (PULL_COST * pullNum):
-    #if session['currencies'][bannerID - 1][0] < (PULL_COST * pullNum): 
         return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
@@ -185,7 +178,7 @@ def pull():
         for pity in pities:
             cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [pity["count"], pity["id"], session['id']])  
         
-        #Update database and session with new currency amounts
+        #Update database with new currency amounts
         cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (currencies[bannerID - 1]["amount"] - (PULL_COST * pullNum), current_user.id, bannerID))
         current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
