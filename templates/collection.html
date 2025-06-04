@@ -3,6 +3,7 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
+<!--Portraits-->
 <div id="collection-background" style="background-image: url(static/images/collections/collectionBG.jpg);">
   <div id="collection-container" class="container pt-4">
     <div id="collection-row" class="row justify-content-between">
@@ -10,7 +11,7 @@
       <div class="col-auto mb-3">
         <div id="collection-portraits" class="card border-0" style="width: 12rem; position: relative;">
           {% if unit["copies"] != None %}
-            <img src="static/images/units/portraits/{{ unit["id"] }}.png">
+            <img src="static/images/units/portraits/{{ unit["id"] }}.png" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}">
             <span class="position-absolute translate-middle badge rounded-pill" style="padding-top: 27%; padding-left: 102%;">
               <div class="fs-4 position-relative py-2 px-4 border border-secondary rounded-pill cost-marker">
                 {{ unit["copies"] }}
@@ -49,5 +50,67 @@
     </div>
   </div>
 </div>
+
+<!--Modals-->
+{% for unit in units %}
+<div class="modal fade" id="modal{{ unit["id"] }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <img src="static/images/units/{{ unit["rarity"] }}/{{ unit["id"] }}.png"
+          class="img-fluid d-block mx-auto"
+          style="max-height: 70vh; width: auto;">
+      </div>
+      <form action="/collection" method="post">
+        <div class="modal-footer justify-content-between">
+          <h5 class="text-white">Total Copies: {{ unit["copies"] }}</h5>
+          <button id="sacrificeBtn{{ unit['id'] }}" class="btn btn-light">
+            Sacrifice 1
+          </button>
+          <input
+            type="range"
+            class="form-range"
+            min="0"
+            max="{{ unit['copies'] }}"
+            name="sacrificeAmount"
+            value="0"
+            id="customRange{{ unit['id'] }}"
+          >
+          <input type="hidden" name="id" value="{{ unit['id'] }}">
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+<!--vibe coded script for dynamic slider on modal-->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    {% for unit in units %}
+      const slider{{ unit['id'] }} = document.getElementById("customRange{{ unit['id'] }}");
+      const button{{ unit['id'] }} = document.getElementById("sacrificeBtn{{ unit['id'] }}");
+
+      if (slider{{ unit['id'] }} && button{{ unit['id'] }}) {
+        const updateButton = () => {
+          const value = parseInt(slider{{ unit['id'] }}.value);
+          button{{ unit['id'] }}.textContent = value > 0 ? `Sacrifice ${value}` : "Sacrifice 0";
+          button{{ unit['id'] }}.disabled = value === 0;
+        };
+
+        // Initial update
+        updateButton();
+
+        // Update on input
+        slider{{ unit['id'] }}.addEventListener("input", updateButton);
+      }
+    {% endfor %}
+  });
+</script>
+
+
 
 {% endblock %}
