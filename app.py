@@ -82,6 +82,7 @@ def callback():
         cur = con.cursor()
         #If discord id does not exist insert new user in db
         if cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", (current_user.id,)).fetchone()[0] == 0:
+            con.commit()
             user.create_new_user(current_user)
     session['id'] = current_user.id
     return redirect("/")
