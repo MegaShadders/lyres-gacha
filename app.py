@@ -82,8 +82,7 @@ def callback():
         cur = con.cursor()
         #If discord id does not exist insert new user in db
         if cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", (current_user.id,)).fetchone()[0] == 0:
-            con.commit()
-            user.create_new_user(current_user)
+            user.create_new_user(current_user, cur)
     session['id'] = current_user.id
     return redirect("/")
 
@@ -182,7 +181,7 @@ def pull():
         
         #Update database with new currency amounts
         cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (currencies[currencyIndex]["amount"] - (PULL_COST * pullNum), current_user.id, bannerID))
-        current_user, currencies = user.load_user()
+    current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
 
 

@@ -41,14 +41,12 @@ def load_user_daily(user_id):
             cur.execute("UPDATE users SET last_daily_claimed = date('now') WHERE id = ?", [user_id])
             cur.execute("UPDATE user_missions SET claimable = 1 WHERE user_id = ?", [user_id])
 
-def create_new_user(current_user):
-    with sqlite3.connect("lyres.db") as con:
-        cur = con.cursor()
-        #Create User Entry
-        cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
-        #Create Pity Entries
-        cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
-        #Create Currency Entries
-        cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
-        #Create Mission Entries
-        cur.execute("INSERT INTO user_missions (user_id, missions_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
+def create_new_user(current_user, cur):
+    #Create User Entry
+    cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
+    #Create Pity Entries
+    cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
+    #Create Currency Entries
+    cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
+    #Create Mission Entries
+    cur.execute("INSERT INTO user_missions (user_id, missions_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
