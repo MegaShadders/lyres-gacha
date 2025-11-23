@@ -1,0 +1,13 @@
+PRAGMA user_version = 1;
+CREATE TABLE units(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, rarity TEXT CHECK(rarity == 'R' OR rarity == 'SR' OR rarity == 'SSR'));
+CREATE TABLE banners(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, active INTEGER NOT NULL CHECK(active == 0 OR active == 1), name TEXT NOT NULL UNIQUE);
+CREATE TABLE banner_units(banner_id INTEGER NOT NULL, unit_id INTEGER NOT NULL, rateup INTEGER NOT NULL CHECK(rateup == 0 OR rateup == 1) DEFAULT 0, FOREIGN KEY(banner_id) REFERENCES banners(id), FOREIGN KEY(unit_id) REFERENCES "units"(id));
+CREATE TABLE collections(user_id INTEGER NOT NULL, unit_id INTEGER NOT NULL, copies INTEGER NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(unit_id) REFERENCES units(id));
+CREATE TABLE pity(id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, maximum INTEGER NOT NULL, note TEXT, rarity TEXT CHECK(rarity == 'R' OR rarity == 'SR' OR rarity == 'SSR'), rateup_exists INTEGER);
+CREATE TABLE user_pity(user_id INTEGER NOT NULL, pity_id INTEGER NOT NULL, count INTEGER NOT NULL, rateup_pity INTEGER, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(pity_id) REFERENCES pity(id));
+CREATE TABLE banner_pity(banner_id INTEGER NOT NULL, pity_id INTEGER NOT NULL, FOREIGN KEY(banner_id) REFERENCES banners(id), FOREIGN KEY(pity_id) REFERENCES pity(id));
+CREATE TABLE users(id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL, last_daily_claimed TEXT);
+CREATE TABLE currency(id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL);
+CREATE TABLE user_currency(user_id INTEGER NOT NULL, currency_id INTEGER NOT NULL, amount INTEGER NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(currency_id) REFERENCES currency(id));
+CREATE TABLE missions(id INTEGER PRIMARY KEY NOT NULL, description TEXT NOT NULL, reward INTEGER NOT NULL, currency_id,  FOREIGN KEY(currency_id) REFERENCES currency(id));
+CREATE TABLE user_missions (user_id INTEGER NOT NULL, missions_id INTEGER NOT NULL, claimable INTEGER NOT NULL CHECK(claimable == 0 OR claimable == 1), FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(missions_id) REFERENCES missions(id));
