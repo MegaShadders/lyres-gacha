@@ -16,3 +16,6 @@ __pycache__/
 
 # Ignore database
 lyres.db
+
+# Ignore environment variables
+.env
