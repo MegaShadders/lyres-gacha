@@ -1,11 +1,10 @@
 from flask import Flask, render_template, request, redirect, session
 import random
 import sqlite3
-from config import CLIENT_SECRET, TOKEN, REDIRECT_URI, OAUTH_URL, SESSION_KEY, PAYPAL_CLIENT_ID, PAYPAL_CLIENT_SECRET
+from config import Config
 from zenora import APIClient
 import user
 import sqlite_helper
-
 
 import logging
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
@@ -25,12 +24,12 @@ from paypalserversdk.api_helper import ApiHelper
 
 from app import app
 
-client = APIClient(TOKEN, client_secret=CLIENT_SECRET)
+client = APIClient(Config.DISCORD_TOKEN, client_secret=Config.CLIENT_SECRET)
 
 paypal_client: PaypalServersdkClient = PaypalServersdkClient(
     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
-        o_auth_client_id=PAYPAL_CLIENT_ID,
-        o_auth_client_secret=PAYPAL_CLIENT_SECRET,
+        o_auth_client_id=Config.PAYPAL_CLIENT_ID,
+        o_auth_client_secret=Config.PAYPAL_CLIENT_SECRET,
     ),
     logging_configuration=LoggingConfiguration(
         log_level=logging.INFO,
@@ -57,7 +56,7 @@ PULL_COST = 160
 @app.route("/")
 def index():
     if 'token' not in session: 
-        return redirect(OAUTH_URL)
+        return redirect(Config.OAUTH_URL)
     current_user, currencies = user.load_user()
 
     with sqlite3.connect("lyres.db") as con:
@@ -71,7 +70,7 @@ def index():
 def callback():
     try:
         code = request.args['code']
-        access_token = client.oauth.get_access_token(code, REDIRECT_URI).access_token
+        access_token = client.oauth.get_access_token(code, Config.REDIRECT_URI).access_token
         session['token'] = access_token
     except:
         return redirect("/")
