@@ -9,8 +9,9 @@
 # Ignore .vscode folder
 .vscode/
 
-# Ignore discord config
-config.py
+# Ignore old files
+old-config.py
+old-app.py
 
 # Ignore python chache files
 __pycache__/
