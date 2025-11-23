@@ -10,9 +10,7 @@
 .vscode/
 
 # Ignore old files
-old-config.py
-old-app.py
-
+old_files/
 # Ignore python chache files
 __pycache__/
 
