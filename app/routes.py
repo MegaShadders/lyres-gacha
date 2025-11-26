@@ -183,14 +183,8 @@ def collection():
         with sqlite3.connect("lyres.db") as con:
             con.row_factory = sqlite_helper.dict_factory
             cur = con.cursor()
-            units = cur.execute("""SELECT id, rarity, copies 
-                                FROM (SELECT id, rarity FROM units) 
-                                LEFT JOIN (
-                                    SELECT unit_id, copies 
-                                    FROM collections 
-                                    WHERE user_id = ?
-                                ) ON unit_id = id 
-                                ORDER BY LENGTH(rarity) DESC;""", [session['id']]).fetchall()
+            units = sqlite_helper.get_collection(cur, session['id'])
+            
         return render_template("collection.html", current_user=current_user, units=units, currencies=currencies)
     elif request.method == "POST":
         if not request.form.get("id") or not request.form.get("sacrificeAmount"):
@@ -206,15 +200,7 @@ def collection():
         with sqlite3.connect("lyres.db") as con:
             con.row_factory = sqlite_helper.dict_factory
             cur = con.cursor()
-            sacriUnit = cur.execute("""SELECT id, rarity, copies 
-                                FROM (SELECT id, rarity FROM units) 
-                                LEFT JOIN (
-                                    SELECT unit_id, copies 
-                                    FROM collections 
-                                    WHERE user_id = ?
-                                ) ON unit_id = id 
-                                WHERE id = ?
-                                ORDER BY LENGTH(rarity) DESC;""", [session['id'], sacriID]).fetchone()
+            sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
         
         if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
             return redirect("/")

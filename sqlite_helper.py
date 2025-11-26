@@ -67,6 +67,29 @@ def update_currencies(cur, new_amount, user_id, banner_id):
     cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (new_amount, user_id, banner_id))
 
 
+def get_collection(cur, user_id):
+    return cur.execute("""SELECT id, rarity, copies 
+                                FROM (SELECT id, rarity FROM units) 
+                                LEFT JOIN (
+                                    SELECT unit_id, copies 
+                                    FROM collections 
+                                    WHERE user_id = ?
+                                ) ON unit_id = id 
+                                ORDER BY LENGTH(rarity) DESC;""", [user_id]).fetchall()
+
+def get_sacrifice_unit(cur, user_id, unit_id):
+    return cur.execute("""SELECT id, rarity, copies 
+                                FROM (SELECT id, rarity FROM units) 
+                                LEFT JOIN (
+                                    SELECT unit_id, copies 
+                                    FROM collections 
+                                    WHERE user_id = ?
+                                ) ON unit_id = id 
+                                WHERE id = ?
+                                ORDER BY LENGTH(rarity) DESC;""", [user_id, unit_id]).fetchone()
+
+
+
     
 
 
