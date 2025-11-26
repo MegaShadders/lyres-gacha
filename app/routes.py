@@ -59,9 +59,7 @@ def index():
         return redirect(Config.OAUTH_URL)
     current_user, currencies = user.load_user()
 
-    with sqlite3.connect("lyres.db") as con:
-        cur = con.cursor()
-        banners = cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
+    banners = sqlite_helper.get_banners()
         
     return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies)
 
