@@ -117,21 +117,10 @@ def pull():
     with sqlite3.connect("lyres.db") as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
-        pool = cur.execute("""SELECT id, rarity, copies, rateup
-                            FROM units
-                            INNER JOIN banner_units ON units.id = banner_units.unit_id
-                            LEFT JOIN collections ON banner_units.unit_id = collections.unit_id AND collections.user_id = ?
-                            WHERE banner_id = ?""", (current_user.id, bannerID)).fetchall()
-        pities = cur.execute("""SELECT id, rarity, count, maximum, rateup_exists
-                             FROM pity 
-                             INNER JOIN user_pity ON pity.id = user_pity.pity_id 
-                             WHERE id IN (
-                                SELECT pity_id 
-                                FROM banner_pity 
-                                WHERE banner_id = ?
-                             ) 
-                             AND user_id = ?""", [request.form.get("bannerID"), session['id']]).fetchall()
 
+        pool = sqlite_helper.get_banner_pool(cur, current_user.id, bannerID)
+        pities = sqlite_helper.get_banner_pities(cur, request.form.get("bannerID"), session['id'])
+        
         for i in range(pullNum): #For every pull
             rates=[94.3, 5.1, 0.6] #Set Base Rates
             rateup = 0 #reset rateup flag
@@ -167,17 +156,18 @@ def pull():
         #Update database with pulled units
         for unit in pulledUnits:
             if unit["copies"] == None: #First time pulling this unit
-                    cur.execute("INSERT INTO collections (user_id, unit_id, copies) VALUES(?, ?, 0)", [session['id'], unit["id"]])
+                    sqlite_helper.create_new_collection_entry(cur, session['id'], unit["id"])
                     unit["copies"] = 0 #manually change copies so this isn't triggered again in the same pull
             else:
-                cur.execute("UPDATE collections SET copies = copies + 1 WHERE user_id = ? AND unit_id = ?", [session['id'], unit["id"]])
+                sqlite_helper.update_collection_entry(cur, session['id'], unit["id"])
         
         # Update database with new pity counts
         for pity in pities:
-            cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [pity["count"], pity["id"], session['id']])  
+            sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id']) 
         
         #Update database with new currency amounts
-        cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (currencies[currencyIndex]["amount"] - (PULL_COST * pullNum), current_user.id, bannerID))
+        new_amount = currencies[currencyIndex]["amount"] - (PULL_COST * pullNum)
+        sqlite_helper.update_currencies(cur, new_amount, current_user.id, bannerID)
     current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
 
