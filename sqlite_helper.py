@@ -64,7 +64,8 @@ def update_pity(cur, pity_count, pity_id, user_id):
 
 
 def update_currencies(cur, new_amount, user_id, banner_id):
-    cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (currencies[currencyIndex]["amount"] - (PULL_COST * pullNum), current_user.id, bannerID))
+    cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (new_amount, user_id, banner_id))
+
 
     
 
