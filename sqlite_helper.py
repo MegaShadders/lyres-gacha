@@ -5,11 +5,8 @@ def dict_factory(cursor, row):
     return {key: value for key, value in zip(fields, row)}
     
 
-def change_currency(amount, user_id, currency_id):
-    with sqlite3.connect("lyres.db") as con:
-        cur = con.cursor()
-        cur.execute("UPDATE user_currency SET amount = amount + ? WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
-
+def change_currency(cur, amount, user_id, currency_id):
+    cur.execute("UPDATE user_currency SET amount = amount + (?) WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
 
 def claim_mission(user_id, mission):
     with sqlite3.connect("lyres.db") as con:
@@ -18,14 +15,12 @@ def claim_mission(user_id, mission):
     change_currency(mission["reward"], user_id, mission["currency_id"])
 
 
-def sacrifice_copies(sacriUnit, user_id, sacriAmt):
-    with sqlite3.connect("lyres.db") as con:
-        cur = con.cursor()
-        cur.execute("""UPDATE collections 
-                    SET copies = copies - ? 
-                    WHERE user_id = ? AND unit_id = ?;"""
-                    , [sacriAmt, user_id, sacriUnit["id"]])
-        
+def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):
+    cur.execute("""UPDATE collections 
+                SET copies = copies - ? 
+                WHERE user_id = ? AND unit_id = ?;"""
+                , [sacriAmt, user_id, sacriUnit["id"]])
+    
 
 def get_banners():
     with sqlite3.connect("lyres.db") as con:
@@ -61,10 +56,6 @@ def update_collection_entry(cur, user_id, unit_id):
 
 def update_pity(cur, pity_count, pity_id, user_id):
             cur.execute("UPDATE user_pity SET count = ? WHERE pity_id = ? AND user_id = ?", [pity_count, pity_id, user_id]) 
-
-
-def update_currencies(cur, new_amount, user_id, banner_id):
-    cur.execute("UPDATE user_currency SET amount = ? WHERE user_id = ? AND currency_id = ?", (new_amount, user_id, banner_id))
 
 
 def get_collection(cur, user_id):

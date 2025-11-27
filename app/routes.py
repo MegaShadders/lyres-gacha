@@ -166,10 +166,10 @@ def pull():
             sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id']) 
         
         #Update database with new currency amounts
-        new_amount = currencies[currencyIndex]["amount"] - (PULL_COST * pullNum)
-        sqlite_helper.update_currencies(cur, new_amount, current_user.id, bannerID)
+        sqlite_helper.change_currency(cur, -(PULL_COST * pullNum), current_user.id, currencyIndex+1) 
+
     current_user, currencies = user.load_user()
-    return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=request.form.get("pullNum"), bannerID=request.form.get("bannerID"), currencies=currencies)
+    return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=pullNum, bannerID=bannerID, currencies=currencies)
 
 
 @app.route("/collection", methods=["GET", "POST"])
@@ -202,20 +202,20 @@ def collection():
             cur = con.cursor()
             sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
         
-        if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
-            return redirect("/")
-        
-        rarity_map = {"SSR": 2, "SR": 1, "R": 0}
-        rarityMod = rarity_map.get(sacriUnit["rarity"])
+            if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
+                return redirect("/")
+            
+            rarity_map = {"SSR": 2, "SR": 1, "R": 0}
+            rarityMod = rarity_map.get(sacriUnit["rarity"])
 
-        exponentialAmt = min(sacriAmt, 5) #The amount of sacrifices subject to exponentially increasing rewards, up to 5
-        linearAmt = max(sacriAmt-5, 0) #The overflow of sacrifices subject to linearly increasing rewards
-        exponentialReward =  (PULL_COST * 2**rarityMod) * 2**(exponentialAmt-1) #160*2^{0, 1, 2} * 2^{0-5}
-        linearReward = linearAmt * exponentialReward # 0 if sacriAmt <= 5
-        reward = exponentialReward + linearReward
-
-        sqlite_helper.sacrifice_copies(sacriUnit, session["id"], sacriAmt)
-        sqlite_helper.change_currency(reward, session["id"], min(1, rarityMod)+1) #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index adjustment
+            exponentialAmt = min(sacriAmt, 5) #The amount of sacrifices subject to exponentially increasing rewards, up to 5
+            linearAmt = max(sacriAmt-5, 0) #The overflow of sacrifices subject to linearly increasing rewards
+            exponentialReward =  (PULL_COST * 2**rarityMod) * 2**(exponentialAmt-1) #160*2^{0, 1, 2} * 2^{0-5}
+            linearReward = linearAmt * exponentialReward # 0 if sacriAmt <= 5
+            reward = exponentialReward + linearReward
+            
+            sqlite_helper.sacrifice_copies(cur, sacriUnit, session["id"], sacriAmt)
+            sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1) #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
 
 
         return redirect("/collection")
