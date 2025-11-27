@@ -41,7 +41,12 @@ def load_user_daily(user_id):
             cur.execute("UPDATE users SET last_daily_claimed = date('now') WHERE id = ?", [user_id])
             cur.execute("UPDATE user_missions SET claimable = 1 WHERE user_id = ?", [user_id])
 
-def create_new_user(current_user, cur):
+
+def identify_user(cur, user_id):
+    return cur.execute("SELECT EXISTS(SELECT id FROM users WHERE id = ?)", [user_id]).fetchone()[0]
+     
+
+def create_new_user(cur, current_user):
     #Create User Entry
     cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
     #Create Pity Entries
