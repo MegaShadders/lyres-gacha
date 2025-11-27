@@ -14,40 +14,30 @@
     <div id="banner-background" style="background-image: url(static/images/shrine/backgrounds/1.png)"></div>
 
 
-      <form action="/pull" method="post">
-        <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
-          <button type="submit" class="badge rounded-pill position-relative pull-button" id="pull1" name="pullNum" value="1">
-            <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">
-              <img src="static/images/shrine/icons/1pull.png" style="width: 90%;">
-            </h1>
-            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill">
-              <div class="fs-4 position-relative py-2 px-4 border border-secondary rounded-pill cost-marker" style="margin-bottom: 60%; color: #ea7c18;">
-                <img src="static/images/ui/currencies/1.png" class="fox-coin">
-                160
-                <svg width="1em" height="1em" viewBox="0 0 16 16" class="position-absolute top-100 start-50 translate-middle mt-1" fill="var(--bs-light)" xmlns="http://www.w3.org/2000/svg"><path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
-              </div>
-            </span>
-          </button>
-          <button type="submit" class="badge rounded-pill position-relative pull-button" id="pull1" name="pullNum" value="10">
-            <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">
-              <img src="static/images/shrine/icons/10pull.png" style="width: 90%;">
-            </h1>
-            <span class="position-absolute top-0 start-50 translate-middle badge rounded-pill">
-              <div class="fs-4 position-relative py-2 px-4 border border-secondary rounded-pill cost-marker" style="margin-bottom: 55%; color: #ea7c18;" >
-                <img src="static/images/ui/currencies/1.png" class="fox-coin">
-                1600
-                <svg width="1em" height="1em" viewBox="0 0 16 16" class="position-absolute top-100 start-50 translate-middle mt-1" fill="var(--bs-light)" xmlns="http://www.w3.org/2000/svg"><path d="M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z"/></svg>
-              </div>
-            </span>
-          </button>
-        </div>
-        <input id="banner-id" type="hidden" name="bannerID" value=1>
-      </form>
+      <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
+        <form action="/pull" method="post">
+          <div>  
+            <input class="pull-button" type="image" src="static/images/shrine/icons/1pull.png">
+            <input type="hidden" name="bannerID" value=1>
+            <input type="hidden" name="pullNum" value="1">
+          </div>
+        </form>
+        <form action="/pull" method="post">
+          <div>  
+            <input class="pull-button" type="image" src="static/images/shrine/icons/10pull.png">
+            <input type="hidden" name="bannerID" value=1>
+            <input type="hidden" name="pullNum" value="10">
+          </div>
+        </form>
+      </div>
 
     <script>
       function changeBanner() {
         document.getElementById("banner-background").style.backgroundImage = "url(static/images/shrine/backgrounds/" + event.target.value + ".png)";
-        document.getElementById("banner-id").value = event.target.value;
+        bannerInputs = document.getElementsByName("bannerID")
+        for(let bannerInput of bannerInputs){
+          bannerInput.value = event.target.value;
+        }
         var coins = document.getElementsByClassName("fox-coin");
         for(var i = 0; i < coins.length; i++) {
           if (event.target.value != 1) {

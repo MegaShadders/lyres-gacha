@@ -25,17 +25,17 @@
                         {% endfor %}
                     </div>
             {% endif %}        
-                    <form action="/pull" method="post">
-                        <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1; padding-left: 0%;" id="pull-list">
-                            <button class="badge rounded-pill position-relative pull-button" id="back-button">
-                                <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">Back</h1>
-                            </button>
-                            <button type="submit" class="badge rounded-pill position-relative pull-button" id="pull1" name="pullNum" value="{{ pullNum }}">
-                                <h1 style="-webkit-text-stroke-width: 2px; -webkit-text-stroke-color: black;">Pull Again</h1>
-                            </button>
-                            <input type="hidden" name="bannerID" value="{{ bannerID }}">
-                        </div> 
-                    </form>
+                    <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
+                        <div>  
+                            <input class="pull-button" id="back-button" type="image" src="static/images/pull/back.png">
+                        </div>
+                        <form action="/pull" method="post">
+                            <div>  
+                                <input class="pull-button" type="image" src="static/images/pull/pull_again.png">
+                                <input type="hidden" name="bannerID" value=1>
+                                <input type="hidden" name="pullNum" value="{{ pullNum }}">
+                            </div>
+                        </form>
                 </div>
             
         </div>
