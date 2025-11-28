@@ -32,8 +32,8 @@
 </div>
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#probabilitiesModal">
-  Launch demo modal
+<button type="button" class="btn btn-primary position-absolute bottom-0 start-0" style="z-index: 1;" data-bs-toggle="modal" data-bs-target="#probabilitiesModal">
+  Probabilites
 </button>
 
 <!-- Modal -->
@@ -73,7 +73,7 @@
           </tr>
         </table>
         {% for banner in banners %}
-          <div id="poolList{{ banner["id"] }}">
+          <div id="poolList{{ banner["id"] }}" {% if banner["id"] != 1 %}style="display: none"{% endif %}>
             {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 1 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 1 %}
               <h1>Rateup Pool:</h1>
               {% for pity in bannerPities[banner["id"]-1]%}
@@ -100,8 +100,8 @@
                   {% endfor %}
                 </div>
               {% endfor %}
-        {% endfor %}
         </div>
+      {% endfor %}
       </div>
     </div>
   </div>
@@ -161,6 +161,12 @@
         coins[i].src = "static/images/ui/currencies/1.png"
       }
     }
+    //Hide every pool list
+    {% for banner in banners %}
+      document.getElementById("poolList" + String({{ banner["id"] }})).style.display = "none";
+    {% endfor %}
+    //Show new pool list 
+    document.getElementById("poolList" + String(event.target.value)).style.display = "block";
   }
 </script>
 
