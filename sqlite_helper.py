@@ -34,7 +34,7 @@ def get_banner_pool(cur, user_id, banner_id):
                             WHERE banner_id = ?""", (user_id, banner_id)).fetchall()
 
 def get_banner_pities(cur, banner_id, user_id):
-    return cur.execute("""SELECT id, rarity, count, maximum, rateup_exists
+    return cur.execute("""SELECT id, rarity, count, maximum, rateup_exists, note
                              FROM pity 
                              INNER JOIN user_pity ON pity.id = user_pity.pity_id 
                              WHERE id IN (

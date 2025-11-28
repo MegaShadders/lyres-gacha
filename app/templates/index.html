@@ -90,20 +90,49 @@
               {% endfor %}
             {% endif %}
             <h1>Standard Pool:</h>
-              {% for rarity in ["SSR", "SR", "R"] %}
-                <h2>{{ rarity }}</h2>
-                <div class="d-flex justify-content-start flex-wrap" id="standardList{{ rarity }}{{ banner["id"] }}">
-                  {% for unit in bannerUnits[banner["id"]-1][rarity] %}
-                    {% if unit["rateup"] == 0 %}
-                      <img src="../static/images/units/portraits/{{ unit["id"] }}.png" style="width: 20%" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}" data-bs-dismiss="modal">
-                    {% endif %}
-                  {% endfor %}
-                </div>
+            {% for rarity in ["SSR", "SR", "R"] %}
+            <h2>{{ rarity }}</h2>
+            <div class="d-flex justify-content-start flex-wrap" id="standardList{{ rarity }}{{ banner["id"] }}">
+              {% for unit in bannerUnits[banner["id"]-1][rarity] %}
+                {% if unit["rateup"] == 0 %}
+                  <img src="../static/images/units/portraits/{{ unit["id"] }}.png" style="width: 20%" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}" data-bs-dismiss="modal">
+                {% endif %}
               {% endfor %}
-            <h1>Pity</h1>
-            <p>
+            </div>
+            {% endfor %}
+            <h1>{{ bannerPities[banner["id"]-1][0]["note"] }} Pity</h1>
+            <h2 style="font-family: 'Times New Roman', Times, serif; color:black;">Every 
+              {% for pity in bannerPities[banner["id"]-1] %}
+                {% if pity["rarity"] == "SSR" %}
+                  <span style="color: gold">{{ pity["maximum"] }}</span> / 
+                {% elif pity["rarity"] == "SR" %}
+                  <span style="color:silver">{{ pity["maximum"] }}</span>
+                {% endif %}
+              {% endfor %} 
+              pulls you are guaranteed a Lyres within the
+              {% for pity in bannerPities[banner["id"]-1] %}
+                {% if pity["rarity"] == "SSR" %}
+                  <span style="color: gold">{{ pity["rarity"] }}</span> / 
+                {% elif pity["rarity"] == "SR" %}
+                  <span style="color:silver">{{ pity["rarity"] }}</span>
+                {% endif %}
+              {% endfor %} 
+              rateup pool. This pity carries over between other {{ bannerPities[banner["id"]-1][0]["note"] }} pities
+            </h2><br>
+            {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 0 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 0 %}
+              <h1>Rateup</h1>
+              <h2 style="font-family: 'Times New Roman', Times, serif; color: black;">Every time you roll a
+                {% for pity in bannerPities[banner["id"]-1] %}
+                  {% if pity["rarity"] == "SSR" %}
+                    <span style="color: gold">{{ pity["rarity"] }}</span> / 
+                  {% elif pity["rarity"] == "SR" %}
+                    <span style="color:silver">{{ pity["rarity"] }}</span>
+                  {% endif %}
+                {% endfor %} 
+                Lyres that is not from pity, you have a 50% chance of obtaining a Lyres within the rateup pool. This doesn’t reset the pity count to 0.
+              </h2>
+            {% endif %}
 
-            </p>
         </div>
       {% endfor %}
       </div>
