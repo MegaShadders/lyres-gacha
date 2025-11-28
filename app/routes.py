@@ -122,7 +122,7 @@ def pull():
         pities = sqlite_helper.get_banner_pities(cur, request.form.get("bannerID"), session['id'])
         
         for i in range(pullNum): #For every pull
-            rates=[94.3, 5.1, 0.6] #Set Base Rates
+            rates=[95.0, 4.5, 0.5] #Set Base Rates
             rateup = 0 #reset rateup flag
             #Pity Check
             pities =  sorted(pities, key=lambda x: len(x["rarity"]))#Sort pity by rarity so the highest priority pities will be processed last
@@ -135,7 +135,7 @@ def pull():
                 if pity["rarity"] == "SSR":
                     rates = [0, 0, 100]
                 elif pity["rarity"] == "SR":
-                    rates = [0, 99.4, 0.6]
+                    rates = [0, 99.5, 0.5]
 
                 if pity["rateup_exists"] != None:
                     rateup = 1
