@@ -156,7 +156,8 @@ def pull():
         #Update database with pulled units
         for unit in pulledUnits:
             if unit["copies"] == None: #First time pulling this unit
-                    sqlite_helper.create_new_collection_entry(cur, session['id'], unit["id"])
+                    sqlite_helper.create_collection_entry(cur, session['id'], unit["id"])
+                    #TODO This doesn't work 
                     unit["copies"] = 0 #manually change copies so this isn't triggered again in the same pull
             else:
                 sqlite_helper.update_collection_entry(cur, session['id'], unit["id"])
