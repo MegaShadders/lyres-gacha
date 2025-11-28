@@ -22,10 +22,8 @@ def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):
                 , [sacriAmt, user_id, sacriUnit["id"]])
     
 
-def get_banners():
-    with sqlite3.connect("lyres.db") as con:
-        cur = con.cursor()
-        return cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
+def get_banners(cur):
+    return cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
 
 
 def get_banner_pool(cur, user_id, banner_id):

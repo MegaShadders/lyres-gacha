@@ -5,6 +5,7 @@ from config import Config
 from zenora import APIClient
 import user
 import sqlite_helper
+import collections
 
 import logging
 from paypalserversdk.http.auth.o_auth_2 import ClientCredentialsAuthCredentials
@@ -59,9 +60,26 @@ def index():
         return redirect(Config.OAUTH_URL)
     current_user, currencies = user.load_user()
 
-    banners = sqlite_helper.get_banners()
-        
-    return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies)
+    with sqlite3.connect("lyres.db") as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        banners = sqlite_helper.get_banners(cur)
+        bannerUnits = []
+        bannerPities = []
+        sortedUnits = []
+        # Get units and pities for each active banner
+        for banner in banners:
+            bannerUnits.append(sqlite_helper.get_banner_pool(cur, session["id"], banner["id"]))
+            bannerPities.append(sorted(sqlite_helper.get_banner_pities(cur, banner["id"], session["id"]), key=lambda x: len(x["rarity"]), reverse=True))
+
+        # Split units in each banner by rarity
+        for units in bannerUnits:
+            raritySorted = collections.defaultdict(list)
+            for unit in units:
+                raritySorted[unit['rarity']].append(unit)
+            sortedUnits.append(raritySorted)  
+
+    return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies, bannerUnits=sortedUnits, bannerPities=bannerPities)
 
 
 @app.route("/oauth/callback")

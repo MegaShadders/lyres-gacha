@@ -3,51 +3,165 @@
 {% block title %}: Shrine{% endblock %} 
 
 {% block body %}
-    <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
-      {% for banner in banners %}
-        <button class="badge" id="banner-item" style="background-image: url(static/images/shrine/icons/{{banner[0]}}.png)" value={{banner[0]}} onclick="changeBanner()">
+<div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
+  {% for banner in banners %}
+    <button class="badge" id="banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value={{ banner["id"] }} onclick="changeBanner()">
 
-        </button>
-      {% endfor %}
-    </div>
+    </button>
+  {% endfor %}
+</div>
     
-    <div id="banner-background" style="background-image: url(static/images/shrine/backgrounds/1.png)"></div>
+<div id="banner-background" style="background-image: url(static/images/shrine/backgrounds/1.png)"></div>
 
 
-      <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
-        <form action="/pull" method="post">
-          <div>  
-            <input class="pull-button" type="image" src="static/images/shrine/icons/1pull.png">
-            <input type="hidden" name="bannerID" value=1>
-            <input type="hidden" name="pullNum" value="1">
-          </div>
-        </form>
-        <form action="/pull" method="post">
-          <div>  
-            <input class="pull-button" type="image" src="static/images/shrine/icons/10pull.png">
-            <input type="hidden" name="bannerID" value=1>
-            <input type="hidden" name="pullNum" value="10">
-          </div>
-        </form>
+<div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
+  <form action="/pull" method="post">
+    <div>  
+      <input class="pull-button" type="image" src="static/images/shrine/icons/1pull.png">
+      <input type="hidden" name="bannerID" value=1>
+      <input type="hidden" name="pullNum" value="1">
+    </div>
+  </form>
+  <form action="/pull" method="post">
+    <div>  
+      <input class="pull-button" type="image" src="static/images/shrine/icons/10pull.png">
+      <input type="hidden" name="bannerID" value=1>
+      <input type="hidden" name="pullNum" value="10">
+    </div>
+  </form>
+</div>
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#probabilitiesModal">
+  Launch demo modal
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="probabilitiesModal" tabindex="-1" aria-labelledby="probabilitiesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl">
+    <div class="modal-content" style="background-color: rgba(255,255,255,0.5)">
+      <div class="modal-header position-relative">
+        <h1 class="modal-title fs-5 position-absolute top-50 start-50 translate-middle" id="probabilitiesModalLabel" style="font-size: 2rem !important;">Probabilities</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
+      <div class="modal-body" style="font-family: 'Times New Roman', Times, serif; color:black;">
+        <h1>Probability Per Pull</h1>
+        <table>
+          <tr>
+            <th>Rarity</th>
+            <th>Probability (Base)</th>
+            <th>Probability (SR)</th>
+            <th>Probability (SSR)</th>
+          </tr>
+          <tr>
+            <td>R</td>
+            <td>95%</td>
+            <td>0%</td>
+            <td>0%</td>
+          </tr>
+          <tr>
+            <td>SR</td>
+            <td>4.5%</td>
+            <td>99.5%</td>
+            <td>0%</td>
+          </tr>
+          <tr>
+            <td>SSR</td>
+            <td>0.5%</td>
+            <td>0.5%</td>
+            <td>100%</td>
+          </tr>
+        </table>
+        {% for banner in banners %}
+          <div id="poolList{{ banner["id"] }}">
+            {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 1 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 1 %}
+              <h1>Rateup Pool:</h1>
+              {% for pity in bannerPities[banner["id"]-1]%}
+                {% if pity["rateup_exists"] == 1 %}
+                  <h2>{{ pity["rarity"] }}</h2>
+                  {% for unit in bannerUnits[banner["id"]-1][pity["rarity"]] %}
+                    <div class="d-flex justify-content-start" id="rateupList{{ rarity }}{{ banner["id"] }}">
+                      {% if unit["rateup"] == 1 %}
+                        <img src="../static/images/units/portraits/{{ unit["id"] }}.png" style="width: 20%" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}" data-bs-dismiss="modal">
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            <h1>Standard Pool:</h>
+              {% for rarity in ["SSR", "SR", "R"] %}
+                <h2>{{ rarity }}</h2>
+                <div class="d-flex justify-content-start flex-wrap" id="standardList{{ rarity }}{{ banner["id"] }}">
+                  {% for unit in bannerUnits[banner["id"]-1][rarity] %}
+                    {% if unit["rateup"] == 0 %}
+                      <img src="../static/images/units/portraits/{{ unit["id"] }}.png" style="width: 20%" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}" data-bs-dismiss="modal">
+                    {% endif %}
+                  {% endfor %}
+                </div>
+              {% endfor %}
+        {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-    <script>
-      function changeBanner() {
-        document.getElementById("banner-background").style.backgroundImage = "url(static/images/shrine/backgrounds/" + event.target.value + ".png)";
-        bannerInputs = document.getElementsByName("bannerID")
-        for(let bannerInput of bannerInputs){
-          bannerInput.value = event.target.value;
-        }
-        var coins = document.getElementsByClassName("fox-coin");
-        for(var i = 0; i < coins.length; i++) {
-          if (event.target.value != 1) {
-            coins[i].src = "static/images/ui/currencies/2.png"
-          }
-          else {
-            coins[i].src = "static/images/ui/currencies/1.png"
-          }
-        }
+<!--Modals-->
+{% for banner in banners %}
+  {% for unit in bannerUnits[banner["id"]-1] %}
+    <div class="modal fade" id="modal{{ unit["id"] }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content" style="background-color: rgba(255,255,255,0.5);">
+          <div class="modal-header">
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" data-bs-target="#probabilitiesModal" data-bs-toggle="modal"></button>
+          </div>
+          <div class="modal-body">
+            <img src="static/images/units/{{ unit["rarity"] }}/{{ unit["id"] }}.png"
+              class="img-fluid d-block mx-auto"
+              style="max-height: 70vh; width: auto;">
+          </div>
+          <form action="/collection" method="post">
+            <div class="modal-footer justify-content-between">
+              <h5 class="text-white">Total Copies: {{ unit["copies"] }}</h5>
+              <button id="sacrificeBtn{{ unit['id'] }}" class="btn btn-light">
+                Sacrifice 1
+              </button>
+              <input
+                type="range"
+                class="form-range"
+                min="0"
+                max="{{ unit['copies'] }}"
+                name="sacrificeAmount"
+                value="0"
+                id="customRange{{ unit['id'] }}"
+              >
+              <input type="hidden" name="id" value="{{ unit['id'] }}">
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endfor %}
+{% endfor %}  
+
+<script>
+  function changeBanner() {
+    document.getElementById("banner-background").style.backgroundImage = "url(static/images/shrine/backgrounds/" + event.target.value + ".png)";
+    bannerInputs = document.getElementsByName("bannerID")
+    for(let bannerInput of bannerInputs){
+      bannerInput.value = event.target.value;
+    }
+    var coins = document.getElementsByClassName("fox-coin");
+    for(var i = 0; i < coins.length; i++) {
+      if (event.target.value != 1) {
+        coins[i].src = "static/images/ui/currencies/2.png"
       }
-    </script>
+      else {
+        coins[i].src = "static/images/ui/currencies/1.png"
+      }
+    }
+  }
+</script>
 
 {% endblock %}
