@@ -11,3 +11,4 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY')
     PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID') 
     PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
+    PULL_COST = 160

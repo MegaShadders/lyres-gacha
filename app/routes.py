@@ -50,37 +50,40 @@ orders_controller: OrdersController = paypal_client.orders
 payments_controller: PaymentsController = paypal_client.payments
 
 
-PULL_COST = 160
-
-
-
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 def index():
     if 'token' not in session: 
         return redirect(Config.OAUTH_URL)
     current_user, currencies = user.load_user()
+    
+    if request.method == "GET":
+        with sqlite3.connect("lyres.db") as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            banners = sqlite_helper.get_banners(cur)
+            bannerUnits = []
+            bannerPities = []
+            sortedUnits = []
+            # Get units and pities for each active banner
+            for banner in banners:
+                bannerUnits.append(sqlite_helper.get_banner_pool(cur, session["id"], banner["id"]))
+                bannerPities.append(sorted(sqlite_helper.get_banner_pities(cur, banner["id"], session["id"]), key=lambda x: len(x["rarity"]), reverse=True))
 
-    with sqlite3.connect("lyres.db") as con:
-        con.row_factory = sqlite_helper.dict_factory
-        cur = con.cursor()
-        banners = sqlite_helper.get_banners(cur)
-        bannerUnits = []
-        bannerPities = []
-        sortedUnits = []
-        # Get units and pities for each active banner
-        for banner in banners:
-            bannerUnits.append(sqlite_helper.get_banner_pool(cur, session["id"], banner["id"]))
-            bannerPities.append(sorted(sqlite_helper.get_banner_pities(cur, banner["id"], session["id"]), key=lambda x: len(x["rarity"]), reverse=True))
+            # Split units in each banner by rarity
+            for units in bannerUnits:
+                raritySorted = collections.defaultdict(list)
+                for unit in units:
+                    raritySorted[unit['rarity']].append(unit)
+                sortedUnits.append(raritySorted)
 
-        # Split units in each banner by rarity
-        for units in bannerUnits:
-            raritySorted = collections.defaultdict(list)
-            for unit in units:
-                raritySorted[unit['rarity']].append(unit)
-            sortedUnits.append(raritySorted)  
+        return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies, bannerUnits=sortedUnits, bannerPities=bannerPities)
 
-    return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies, bannerUnits=sortedUnits, bannerPities=bannerPities)
+    elif request.method == "POST":
+        user.sacrifice_request(request)
 
+        return redirect("/")
+
+    
 
 @app.route("/oauth/callback")
 def callback():
@@ -129,7 +132,7 @@ def pull():
 
     #This will break if a 3rd currency is created
     currencyIndex = min(1, bannerID-1)
-    if currencies[currencyIndex]["amount"] < (PULL_COST * pullNum):
+    if currencies[currencyIndex]["amount"] < (Config.PULL_COST * pullNum):
         return redirect("/") 
     
     with sqlite3.connect("lyres.db") as con:
@@ -185,7 +188,7 @@ def pull():
             sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id']) 
         
         #Update database with new currency amounts
-        sqlite_helper.change_currency(cur, -(PULL_COST * pullNum), current_user.id, currencyIndex+1) 
+        sqlite_helper.change_currency(cur, -(Config.PULL_COST * pullNum), current_user.id, currencyIndex+1) 
 
     current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=pullNum, bannerID=bannerID, currencies=currencies)
@@ -206,37 +209,8 @@ def collection():
             
         return render_template("collection.html", current_user=current_user, units=units, currencies=currencies)
     elif request.method == "POST":
-        if not request.form.get("id") or not request.form.get("sacrificeAmount"):
-            return redirect("/")
+        user.sacrifice_request(request)
         
-        try: 
-            sacriID = int(request.form.get("id"))
-            sacriAmt = int(request.form.get("sacrificeAmount"))
-        except (TypeError, ValueError):
-            return redirect("/")
-        
-
-        with sqlite3.connect("lyres.db") as con:
-            con.row_factory = sqlite_helper.dict_factory
-            cur = con.cursor()
-            sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
-        
-            if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
-                return redirect("/")
-            
-            rarity_map = {"SSR": 2, "SR": 1, "R": 0}
-            rarityMod = rarity_map.get(sacriUnit["rarity"])
-
-            exponentialAmt = min(sacriAmt, 5) #The amount of sacrifices subject to exponentially increasing rewards, up to 5
-            linearAmt = max(sacriAmt-5, 0) #The overflow of sacrifices subject to linearly increasing rewards
-            exponentialReward =  (PULL_COST * 2**rarityMod) * 2**(exponentialAmt-1) #160*2^{0, 1, 2} * 2^{0-5}
-            linearReward = linearAmt * exponentialReward # 0 if sacriAmt <= 5
-            reward = exponentialReward + linearReward
-            
-            sqlite_helper.sacrifice_copies(cur, sacriUnit, session["id"], sacriAmt)
-            sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1) #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
-
-
         return redirect("/collection")
 
 @app.route("/store", methods=["GET"])

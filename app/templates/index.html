@@ -122,7 +122,7 @@
                 class="img-fluid d-block mx-auto"
                 style="max-height: 70vh; width: auto;">
             </div>
-            <form action="/collection" method="post">
+            <form action="/" method="post">
               <div class="modal-footer justify-content-between">
                 <h5 class="text-black">Total Copies: {{ unit["copies"] }}</h5>
                 <button id="sacrificeBtn{{ unit['id'] }}" class="btn btn-light">
@@ -143,6 +143,27 @@
           </div>
         </div>
       </div>
+      <!--vibe coded script for dynamic slider on modal-->
+      <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const slider{{ unit['id'] }} = document.getElementById("customRange{{ unit['id'] }}");
+          const button{{ unit['id'] }} = document.getElementById("sacrificeBtn{{ unit['id'] }}");
+
+          if (slider{{ unit['id'] }} && button{{ unit['id'] }}) {
+            const updateButton = () => {
+              const value = parseInt(slider{{ unit['id'] }}.value);
+              button{{ unit['id'] }}.textContent = value > 0 ? `Sacrifice ${value}` : "Sacrifice 0";
+              button{{ unit['id'] }}.disabled = value === 0;
+            };
+
+            // Initial update
+            updateButton();
+
+            // Update on input
+            slider{{ unit['id'] }}.addEventListener("input", updateButton);
+          }
+        });
+      </script>
     {% endfor %}
   {% endfor %}
 {% endfor %}  
