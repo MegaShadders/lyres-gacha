@@ -74,10 +74,10 @@
         </table>
         {% for banner in banners %}
           <div id="poolList{{ banner["id"] }}" {% if banner["id"] != 1 %}style="display: none"{% endif %}>
-            {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 1 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 1 %}
+            {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 0 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 0 %}
               <h1>Rateup Pool:</h1>
               {% for pity in bannerPities[banner["id"]-1]%}
-                {% if pity["rateup_exists"] == 1 %}
+                {% if pity["rateup_exists"] == 0 %}
                   <h2>{{ pity["rarity"] }}</h2>
                   {% for unit in bannerUnits[banner["id"]-1][pity["rarity"]] %}
                     <div class="d-flex justify-content-start" id="rateupList{{ rarity }}{{ banner["id"] }}">
@@ -100,6 +100,10 @@
                   {% endfor %}
                 </div>
               {% endfor %}
+            <h1>Pity</h1>
+            <p>
+
+            </p>
         </div>
       {% endfor %}
       </div>
