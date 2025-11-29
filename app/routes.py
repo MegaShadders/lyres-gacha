@@ -118,8 +118,8 @@ def pull():
         return redirect("/")
     current_user, currencies = user.load_user()
     
-    #if not request.form.get("bannerID") or not request.form.get("pullNum"):
-     #   return redirect("/")
+    if not request.form.get("bannerID") or not request.form.get("pullNum"):
+        return redirect("/")
 
     
     pulledUnits = []
