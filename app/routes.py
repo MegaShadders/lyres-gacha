@@ -99,7 +99,7 @@ def callback():
     with sqlite3.connect("lyres.db") as con:
         cur = con.cursor()
         #If discord id does not exist insert new user in db
-        if user.identify_user(current_user.id) == 0:
+        if user.identify_user(cur, current_user.id) == 0:
             user.create_new_user(cur, current_user)
     session['id'] = current_user.id
     return redirect("/")
