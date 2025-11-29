@@ -281,3 +281,6 @@ background-color: transparent;
   .pull-button{ width: 84px; }
 }
 
+.banner-prob-table, th, td{
+    border: 1px solid black;
+}

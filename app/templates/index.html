@@ -31,12 +31,12 @@
   </form>
 </div>
 
-<!-- Button trigger modal -->
+<!-- Button trigger probabilities modal -->
 <button type="button" class="btn btn-primary position-absolute bottom-0 start-0" style="z-index: 1;" data-bs-toggle="modal" data-bs-target="#probabilitiesModal">
   Probabilites
 </button>
 
-<!-- Modal -->
+<!-- Probabilities Modal -->
 <div class="modal fade" id="probabilitiesModal" tabindex="-1" aria-labelledby="probabilitiesModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-xl">
     <div class="modal-content" style="background-color: rgba(255,255,255,0.5)">
@@ -44,9 +44,9 @@
         <h1 class="modal-title fs-5 position-absolute top-50 start-50 translate-middle" id="probabilitiesModalLabel" style="font-size: 2rem !important;">Probabilities</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="modal-body" style="font-family: 'Times New Roman', Times, serif; color:black;">
-        <h1>Probability Per Pull</h1>
-        <table>
+      <div class="modal-body">
+        <h1 >Probability Per Pull</h1><br>
+        <table class="banner-prob-table" style="font-family: 'Times New Roman', Times, serif; color:black;">
           <tr>
             <th>Rarity</th>
             <th>Probability (Base)</th>
@@ -75,10 +75,10 @@
         {% for banner in banners %}
           <div id="poolList{{ banner["id"] }}" {% if banner["id"] != 1 %}style="display: none"{% endif %}>
             {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 0 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 0 %}
-              <h1>Rateup Pool:</h1>
+              <br><h1>Rateup Pool</h1>
               {% for pity in bannerPities[banner["id"]-1]%}
                 {% if pity["rateup_exists"] == 0 %}
-                  <h2>{{ pity["rarity"] }}</h2>
+                  <h2>{{ pity["rarity"] }}</h2><br>
                   {% for unit in bannerUnits[banner["id"]-1][pity["rarity"]] %}
                     <div class="d-flex justify-content-start" id="rateupList{{ rarity }}{{ banner["id"] }}">
                       {% if unit["rateup"] == 1 %}
@@ -89,9 +89,9 @@
                 {% endif %}
               {% endfor %}
             {% endif %}
-            <h1>Standard Pool:</h>
+            <br><h1>Standard Pool</h>
             {% for rarity in ["SSR", "SR", "R"] %}
-            <h2>{{ rarity }}</h2>
+            <br><h2>{{ rarity }}</h2>
             <div class="d-flex justify-content-start flex-wrap" id="standardList{{ rarity }}{{ banner["id"] }}">
               {% for unit in bannerUnits[banner["id"]-1][rarity] %}
                 {% if unit["rateup"] == 0 %}
@@ -100,7 +100,7 @@
               {% endfor %}
             </div>
             {% endfor %}
-            <h1>{{ bannerPities[banner["id"]-1][0]["note"] }} Pity</h1>
+            <br><h1>{{ bannerPities[banner["id"]-1][0]["note"] }} Pity</h1>
             <h2 style="font-family: 'Times New Roman', Times, serif; color:black;">Every 
               {% for pity in bannerPities[banner["id"]-1] %}
                 {% if pity["rarity"] == "SSR" %}
@@ -117,7 +117,17 @@
                   <span style="color:silver">{{ pity["rarity"] }}</span>
                 {% endif %}
               {% endfor %} 
-              rateup pool. This pity carries over between other {{ bannerPities[banner["id"]-1][0]["note"] }} pities
+              rateup pool. This pity carries over between other {{ bannerPities[banner["id"]-1][0]["note"] }} pities.
+            <h2 style="font-family: 'Times New Roman', Times, serif; color:black;">
+              {% for pity in bannerPities[banner["id"]-1] %}
+                Next 
+                {% if pity["rarity"] == "SSR" %}
+                  <span style="color: gold">{{ pity["rarity"] }}</span> 
+                {% elif pity["rarity"] == "SR" %}
+                  <span style="color:silver">{{ pity["rarity"] }}</span>
+                {% endif %}
+                Lyres in {{ pity["maximum"] - pity["count"] }} pulls.<br>
+              {% endfor %} 
             </h2><br>
             {% if bannerPities[banner["id"]-1][0]["rateup_exists"] == 0 or bannerPities[banner["id"]-1][1]["rateup_exists"] == 0 %}
               <h1>Rateup</h1>
@@ -129,7 +139,7 @@
                     <span style="color:silver">{{ pity["rarity"] }}</span>
                   {% endif %}
                 {% endfor %} 
-                Lyres that is not from pity, you have a 50% chance of obtaining a Lyres within the rateup pool. This doesn’t reset the pity count to 0.
+                Lyres that is not from pity, you have a 50% chance of obtaining a Lyres within the rateup pool. This doesn’t reset your  pity count to 0.
               </h2>
             {% endif %}
 
@@ -140,7 +150,7 @@
   </div>
 </div>
 
-<!--Modals-->
+<!--Sacrifice Modals-->
 {% for banner in banners %}
   {% for pity in bannerPities[banner["id"]-1]%}
     {% for unit in bannerUnits[banner["id"]-1][pity["rarity"]] %}
