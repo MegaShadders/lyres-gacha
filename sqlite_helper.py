@@ -1,4 +1,5 @@
 import sqlite3
+from config import Config
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
@@ -9,7 +10,7 @@ def change_currency(cur, amount, user_id, currency_id):
     cur.execute("UPDATE user_currency SET amount = amount + (?) WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
 
 def claim_mission(user_id, mission):
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         cur = con.cursor()
         cur.execute("UPDATE user_missions SET claimable = 0 WHERE user_id = ? AND mission_id = ?", [user_id, mission["id"]])
         change_currency(cur, mission["reward"], user_id, mission["currency_id"])

@@ -57,7 +57,7 @@ def index():
     current_user, currencies = user.load_user()
     
     if request.method == "GET":
-        with sqlite3.connect("lyres.db") as con:
+        with sqlite3.connect(Config.DATABASE_URI) as con:
             con.row_factory = sqlite_helper.dict_factory
             cur = con.cursor()
             banners = sqlite_helper.get_banners(cur)
@@ -96,7 +96,7 @@ def callback():
     
     bearer_client = APIClient(session.get('token'), bearer=True)
     current_user = bearer_client.users.get_current_user()
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         cur = con.cursor()
         #If discord id does not exist insert new user in db
         if user.identify_user(cur, current_user.id) == 0:
@@ -135,7 +135,7 @@ def pull():
     if currencies[currencyIndex]["amount"] < (Config.PULL_COST * pullNum):
         return redirect("/") 
     
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
 
@@ -202,7 +202,7 @@ def collection():
 
     if request.method == "GET":
         units = []
-        with sqlite3.connect("lyres.db") as con:
+        with sqlite3.connect(Config.DATABASE_URI) as con:
             con.row_factory = sqlite_helper.dict_factory
             cur = con.cursor()
             units = sqlite_helper.get_collection(cur, session['id'])

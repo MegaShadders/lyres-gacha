@@ -6,7 +6,7 @@ import sqlite_helper
 from config import Config
 
 def load_user_currency(user_id):
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
         currencies = cur.execute("SELECT currency_id, amount FROM user_currency WHERE user_id = ?", [user_id]).fetchall()
@@ -21,11 +21,11 @@ def load_user():
 
 def load_user_missions(user_id):
     load_user_daily_login(user_id)
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
 
-        missions = cur.execute("""SELECT id, description, reward, currency_id, claimable 
+        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, claimable 
                                FROM user_missions
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
@@ -34,7 +34,7 @@ def load_user_missions(user_id):
     return missions
 
 def load_user_daily_login(user_id):
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         cur = con.cursor()
         last_daily_claimed = cur.execute("SELECT last_daily_claimed FROM users WHERE id = ?", [user_id]).fetchone()[0]
         if datetime.date.today() > datetime.date.fromisoformat(last_daily_claimed):
@@ -68,7 +68,7 @@ def sacrifice_request(request):
         return redirect("/")
     
 
-    with sqlite3.connect("lyres.db") as con:
+    with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
         sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
