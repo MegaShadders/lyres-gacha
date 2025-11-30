@@ -48,13 +48,13 @@ def identify_user(cur, user_id):
 
 def create_new_user(cur, current_user):
     #Create User Entry
-    cur.execute("INSERT INTO users (id, username, last_daily_claimed) VALUES(?, ?, date('now', '-1 day'))", [current_user.id, current_user.username])
+    cur.execute("INSERT INTO users (id, username) VALUES(?, ?)", [current_user.id, current_user.username])
     #Create Pity Entries
     cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
     #Create Currency Entries
     cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
     #Create Mission Entries
-    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
+    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable, last_claimed) SELECT ?, id, 0, date('now', '-1 day') FROM missions", (current_user.id,))
 
 
 def sacrifice_request(request):
