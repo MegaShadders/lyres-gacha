@@ -28,7 +28,7 @@ def load_user_missions(user_id):
         missions = cur.execute("""SELECT id, description, reward, currency_id, claimable 
                                FROM user_missions
                                INNER JOIN missions
-                               ON missions.id = user_missions.missions_id
+                               ON missions.id = user_missions.mission_id
                                WHERE user_id = ?""", [user_id]).fetchall()                  
         
     return missions
@@ -54,7 +54,7 @@ def create_new_user(cur, current_user):
     #Create Currency Entries
     cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
     #Create Mission Entries
-    cur.execute("INSERT INTO user_missions (user_id, missions_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
+    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable) SELECT ?, id, 0 FROM missions", (current_user.id,))
 
 
 def sacrifice_request(request):
