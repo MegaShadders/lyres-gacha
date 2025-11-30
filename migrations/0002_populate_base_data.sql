@@ -144,15 +144,18 @@ FROM json_each('[
     {"id":2,"name":"gold fox coin"}
 ]');
 
-INSERT INTO missions (id, description, reward, currency_id)
+INSERT INTO missions (id, description, reward, reset, currency_id)
 SELECT 
   json_extract(value, '$.id'), 
   json_extract(value, '$.description'),
   json_extract(value, '$.reward'),
+  json_extract(value, '$.reset'),
   json_extract(value, '$.currency_id')
 FROM json_each('[
-    {"id":1,"description":"Daily Login:","reward":1600,"currency_id":1},
-    {"id":2,"description":"Daily Login:","reward":160,"currency_id":2}
+    {"id":1,"description":"Daily Login:","reward":1600, "reset": "Daily", "currency_id":1},
+    {"id":2,"description":"Daily Login:","reward":160, "reset": "Daily", "currency_id":2},
+    {"id":3,"description":"Daily Offering:","reward":800, "reset": "Daily", "currency_id":1},
+    {"id":4,"description":"Daily Offering:","reward":160, "reset": "Daily", "currency_id":2}
 ]');
 
 PRAGMA user_version = 2;
