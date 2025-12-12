@@ -155,7 +155,9 @@ FROM json_each('[
     {"id":1,"description":"Daily Login:","reward":1600, "reset": "Daily", "currency_id":1},
     {"id":2,"description":"Daily Login:","reward":160, "reset": "Daily", "currency_id":2},
     {"id":3,"description":"Daily Offering:","reward":800, "reset": "Daily", "currency_id":1},
-    {"id":4,"description":"Daily Offering:","reward":160, "reset": "Daily", "currency_id":2}
+    {"id":4,"description":"Daily Offering:","reward":160, "reset": "Daily", "currency_id":2},
+    {"id":5,"description":"Weekly Login:","reward":8000, "reset": "Weekly", "currency_id":1},
+    {"id":6,"description":"Weekly Login:","reward":1600, "reset": "Weekly", "currency_id":2},
 ]');
 
 PRAGMA user_version = 2;

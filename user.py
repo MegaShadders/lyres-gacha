@@ -20,26 +20,46 @@ def load_user():
     return current_user, currencies
 
 def load_user_missions(user_id):
-    load_user_daily_login(user_id)
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
 
-        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, claimable 
+        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, claimable, reset, last_reset
                                FROM user_missions
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
-                               WHERE user_id = ?""", [user_id]).fetchall()                  
+                               WHERE user_id = ?""", [user_id]).fetchall()
+
+        for mission in missions:
+            check_mission_reset(cur, mission, user_id)
         
     return missions
 
-def load_user_daily_login(user_id):
-    with sqlite3.connect(Config.DATABASE_URI) as con:
-        cur = con.cursor()
-        last_daily_claimed = cur.execute("SELECT last_daily_claimed FROM users WHERE id = ?", [user_id]).fetchone()[0]
-        if datetime.date.today() > datetime.date.fromisoformat(last_daily_claimed):
-            cur.execute("UPDATE users SET last_daily_claimed = date('now') WHERE id = ?", [user_id])
-            cur.execute("UPDATE user_missions SET claimable = 1 WHERE user_id = ? AND description = 'Daily Login:'", [user_id])
+def check_mission_reset(cur, mission, user_id):
+    today = datetime.date.today()
+    if mission["reset"] == "Daily":
+        last_reset = datetime.date.fromisoformat(mission["last_reset"])
+        if today > last_reset:
+            reset_mission(cur, mission["mission_id"], user_id)
+            if mission["description"] == "Daily Login:":
+                set_mission_claimable(cur, mission["mission_id"], user_id)
+                mission["claimable"] = 1
+    elif mission["reset"] == "Weekly":
+        last_reset = datetime.date.fromisoformat(mission["last_reset"])
+        this_monday = today - datetime.timedelta(days=today.weekday())
+        if last_reset < this_monday:
+            reset_mission(cur, mission["mission_id"], user_id)
+            if mission["description"] == "Weekly Login:":
+                set_mission_claimable(cur, mission["mission_id"], user_id)
+                mission["claimable"] = 1
+            
+
+def reset_mission(cur, mission_id, user_id):
+    cur.execute("UPDATE user_missions SET last_reset = date('now') WHERE user_id = ? AND mission_id = ?", [user_id, mission_id])
+
+
+def set_mission_claimable(cur, mission_id, user_id):
+    cur.execute("UPDATE user_missions SET claimable = 1 WHERE user_id = ? AND mission_id = ?", [user_id, mission_id])
 
 
 def identify_user(cur, user_id):
@@ -53,8 +73,8 @@ def create_new_user(cur, current_user):
     cur.execute("INSERT INTO user_pity (user_id, pity_id, count, rateup_pity) SELECT ?, id, 0, rateup_exists FROM pity", (current_user.id,))
     #Create Currency Entries
     cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
-    #Create Mission Entries
-    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable, last_claimed) SELECT ?, id, 0, date('now', '-1 day') FROM missions", (current_user.id,))
+    #Create Mission Entries, set last_reset to 10 days ago so all missions get reset upon load (date(0) or null doesn't work)
+    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable, last_reset) SELECT ?, id, 0, date('now', '-10 day') FROM missions", (current_user.id,))
 
 
 def sacrifice_request(request):

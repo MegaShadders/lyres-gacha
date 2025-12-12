@@ -284,7 +284,7 @@ def missions():
     
     try:
         #Get the claimed mission id from form
-        claimed_mission = next((mission for mission in missions if mission["id"] == int(request.form.get("mission_id"))), None)
+        claimed_mission = next((mission for mission in missions if mission["mission_id"] == int(request.form.get("mission_id"))), None)
         if claimed_mission["claimable"] == 0: #If not claimable, exit
             return redirect("/missions")
     except: #If None, or int conversion fails, exit
