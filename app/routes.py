@@ -273,9 +273,12 @@ def missions():
         return redirect("/")
     current_user, currencies = user.load_user()
 
-    missions = user.load_user_missions(session["id"]) #Load user missions
+    missions = user.get_user_missions(session["id"]) #Load user missions
 
     if request.method == "GET": #If GET, load page
+        with sqlite3.connect(Config.DATABASE_URI) as con:
+            cur = con.cursor()
+            user.check_login_missions(cur, missions, session["id"])
         return render_template("missions.html", current_user=current_user, currencies=currencies, missions=missions)
 
     #If POST, mission has been claimed

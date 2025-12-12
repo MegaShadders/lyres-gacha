@@ -19,7 +19,7 @@ def load_user():
 
     return current_user, currencies
 
-def load_user_missions(user_id):
+def get_user_missions(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
@@ -29,29 +29,29 @@ def load_user_missions(user_id):
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
                                WHERE user_id = ?""", [user_id]).fetchall()
-
-        for mission in missions:
-            check_mission_reset(cur, mission, user_id)
         
     return missions
+
+def check_login_missions(cur, missions, user_id):
+    for mission in missions:
+        if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
+            if check_mission_reset(cur, mission, user_id):
+                reset_mission(cur, mission["mission_id"], user_id)
+                set_mission_claimable(cur, mission["mission_id"], user_id)
+                mission["claimable"] = 1
 
 def check_mission_reset(cur, mission, user_id):
     today = datetime.date.today()
     if mission["reset"] == "Daily":
         last_reset = datetime.date.fromisoformat(mission["last_reset"])
         if today > last_reset:
-            reset_mission(cur, mission["mission_id"], user_id)
-            if mission["description"] == "Daily Login:":
-                set_mission_claimable(cur, mission["mission_id"], user_id)
-                mission["claimable"] = 1
+            return True
     elif mission["reset"] == "Weekly":
         last_reset = datetime.date.fromisoformat(mission["last_reset"])
         this_monday = today - datetime.timedelta(days=today.weekday())
         if last_reset < this_monday:
-            reset_mission(cur, mission["mission_id"], user_id)
-            if mission["description"] == "Weekly Login:":
-                set_mission_claimable(cur, mission["mission_id"], user_id)
-                mission["claimable"] = 1
+            return True
+    return False
             
 
 def reset_mission(cur, mission_id, user_id):
