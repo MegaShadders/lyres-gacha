@@ -152,8 +152,8 @@
 
 <!--Sacrifice Modals-->
 {% for banner in banners %}
-  {% for pity in bannerPities[banner["id"]-1]%}
-    {% for unit in bannerUnits[banner["id"]-1][pity["rarity"]] %}
+  {% for rarity in ["SSR", "SR", "R"] %}
+    {% for unit in bannerUnits[banner["id"]-1][rarity] %}
       <div class="modal fade" id="modal{{ unit["id"] }}" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
           <div class="modal-content" style="background-color: rgba(255,255,255,0.5);">
