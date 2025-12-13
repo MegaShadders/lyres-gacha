@@ -40,7 +40,7 @@ def get_user_missions(user_id):
 def check_login_missions(cur, missions, user_id):
     daily_login_reset = False
     for mission in missions:
-        if mission["mission_id"] == "Daily Login:" or mission["description"] == "Weekly Login:":
+        if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
             if check_mission_reset(mission):
                 daily_login_reset = True #If any of these missions reset, a new login has occured
                 reset_mission(cur, mission["mission_id"], user_id)
