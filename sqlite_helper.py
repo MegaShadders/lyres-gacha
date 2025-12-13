@@ -9,11 +9,9 @@ def dict_factory(cursor, row):
 def change_currency(cur, amount, user_id, currency_id):
     cur.execute("UPDATE user_currency SET amount = amount + (?) WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
 
-def claim_mission(user_id, mission):
-    with sqlite3.connect(Config.DATABASE_URI) as con:
-        cur = con.cursor()
-        cur.execute("UPDATE user_missions SET claimable = 0 WHERE user_id = ? AND mission_id = ?", [user_id, mission["mission_id"]])
-        change_currency(cur, mission["reward"], user_id, mission["currency_id"])
+def claim_mission(cur, user_id, mission):
+    cur.execute("UPDATE user_missions SET claimed = 1 WHERE user_id = ? AND mission_id = ?", [user_id, mission["mission_id"]])
+    change_currency(cur, mission["reward"], user_id, mission["currency_id"])
 
 
 def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):

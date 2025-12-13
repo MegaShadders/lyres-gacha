@@ -10,6 +10,6 @@ CREATE TABLE banner_pity(banner_id INTEGER NOT NULL, pity_id INTEGER NOT NULL, F
 CREATE TABLE users(id INTEGER PRIMARY KEY NOT NULL, username TEXT NOT NULL);
 CREATE TABLE currency(id INTEGER PRIMARY KEY NOT NULL, name TEXT NOT NULL);
 CREATE TABLE user_currency(user_id INTEGER NOT NULL, currency_id INTEGER NOT NULL, amount INTEGER NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(currency_id) REFERENCES currency(id));
-CREATE TABLE missions(id INTEGER PRIMARY KEY NOT NULL, description TEXT NOT NULL, reward INTEGER NOT NULL, reset TEXT NOT NULL, currency_id,  FOREIGN KEY(currency_id) REFERENCES currency(id));
-CREATE TABLE user_missions (user_id INTEGER NOT NULL, mission_id INTEGER NOT NULL, claimable INTEGER NOT NULL CHECK(claimable == 0 OR claimable == 1), last_reset TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(mission_id) REFERENCES missions(id));
+CREATE TABLE missions(id INTEGER PRIMARY KEY NOT NULL, description TEXT NOT NULL, reward INTEGER NOT NULL, reset TEXT NOT NULL, requirement INTEGER NOT NULL, currency_id,  FOREIGN KEY(currency_id) REFERENCES currency(id));
+CREATE TABLE user_missions (user_id INTEGER NOT NULL, mission_id INTEGER NOT NULL, count INTEGER, claimed INTEGER NOT NULL CHECK(claimed == 0 OR claimed == 1), last_reset TEXT NOT NULL, FOREIGN KEY(user_id) REFERENCES users(id), FOREIGN KEY(mission_id) REFERENCES missions(id));
 COMMIT;

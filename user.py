@@ -24,7 +24,7 @@ def get_user_missions(user_id):
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
 
-        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, claimable, reset, last_reset
+        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, count, requirement, reset, last_reset
                                FROM user_missions
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
@@ -74,7 +74,7 @@ def create_new_user(cur, current_user):
     #Create Currency Entries
     cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
     #Create Mission Entries, set last_reset to 10 days ago so all missions get reset upon load (date(0) or null doesn't work)
-    cur.execute("INSERT INTO user_missions (user_id, mission_id, claimable, last_reset) SELECT ?, id, 0, date('now', '-10 day') FROM missions", (current_user.id,))
+    cur.execute("INSERT INTO user_missions (user_id, mission_id, count, last_reset) SELECT ?, id, 0, date('now', '-10 day') FROM missions", (current_user.id,))
 
 
 def sacrifice_request(request):
