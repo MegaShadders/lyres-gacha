@@ -127,22 +127,26 @@
                     <div class="me-2 fw-bold text-muted">
                         {{ mission.reward }}
                     </div>
-                    <div class="me-2 fw-bold text-muted">
-                        {{ mission.count }} / {{ mission.requirement }}
-                    </div>
                     <div>
                         <img src="static/images/ui/currencies/{{ mission.currency_id }}.png" class="fox-coin" style="height: 24px;">
+                    </div>
+                    <div class="ms-auto fw-bold text-muted">
+                        {{ mission.count }} / {{ mission.requirement }}
                     </div>
                 </div>
 
                 <form action="/missions" method="post" class="ms-3">
-                    <button type="submit"
-                            class="btn {% if mission.claimed == 0 and mission.count >= mission.requirement %}btn-primary{% else %}btn-secondary{% endif %}"
-                            {% if mission.claimable != 1 %}disabled{% endif %}
-                            name="mission_id"
-                            value="{{ mission.mission_id }}">
-                        Claim
-                    </button>
+                  <button type="submit"
+                      class="btn {% if mission.claimed == 0 and mission.count >= mission.requirement %}btn-primary{% else %}btn-secondary{% endif %}"
+                      {% if mission.claimed == 1 or mission.count < mission.requirement %}disabled{% endif %}
+                      name="mission_id"
+                      value="{{ mission.mission_id }}">
+                    {% if mission.claimed == 1 %}
+                      Claimed
+                    {% else %}
+                      Claim
+                    {% endif %}
+                  </button>
                 </form>
             </div>
             {% endfor %}

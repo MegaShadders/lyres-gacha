@@ -5,6 +5,11 @@ import datetime
 import sqlite_helper
 from config import Config
 
+DAILYID1 = 1
+DAILYID2 = 2
+WEEKLYID1 = 5
+WEEKLYID2 = 6
+
 def load_user_currency(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
@@ -24,7 +29,7 @@ def get_user_missions(user_id):
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
 
-        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, count, requirement, reset, last_reset
+        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, count, requirement, reset, claimed, last_reset
                                FROM user_missions
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
@@ -33,14 +38,19 @@ def get_user_missions(user_id):
     return missions
 
 def check_login_missions(cur, missions, user_id):
+    daily_login_reset = False
     for mission in missions:
-        if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
-            if check_mission_reset(cur, mission, user_id):
+        if mission["mission_id"] == "Daily Login:" or mission["description"] == "Weekly Login:":
+            if check_mission_reset(mission):
+                daily_login_reset = True #If any of these missions reset, a new login has occured
                 reset_mission(cur, mission["mission_id"], user_id)
-                set_mission_claimable(cur, mission["mission_id"], user_id)
-                mission["claimable"] = 1
+    
+    if daily_login_reset:
+        daily_login(cur, user_id)
+    
 
-def check_mission_reset(cur, mission, user_id):
+
+def check_mission_reset(mission):
     today = datetime.date.today()
     if mission["reset"] == "Daily":
         last_reset = datetime.date.fromisoformat(mission["last_reset"])
@@ -55,11 +65,19 @@ def check_mission_reset(cur, mission, user_id):
             
 
 def reset_mission(cur, mission_id, user_id):
-    cur.execute("UPDATE user_missions SET last_reset = date('now') WHERE user_id = ? AND mission_id = ?", [user_id, mission_id])
+    cur.execute("UPDATE user_missions SET claimed = 0, count = 0, last_reset = date('now') WHERE user_id = ? AND mission_id = ?", [user_id, mission_id])
 
 
-def set_mission_claimable(cur, mission_id, user_id):
-    cur.execute("UPDATE user_missions SET claimable = 1 WHERE user_id = ? AND mission_id = ?", [user_id, mission_id])
+def complete_mission(cur, mission_id, user_id, amount):
+    cur.execute("UPDATE user_missions SET count = count + ? WHERE user_id = ? AND mission_id = ?", [amount, user_id, mission_id])
+
+
+def daily_login(cur, user_id):
+    #If the daily login has reset, add 1 score to the login missions with lazy hardcoded IDs 
+    complete_mission(cur, DAILYID1, user_id, 1)
+    complete_mission(cur, DAILYID2, user_id, 1)
+    complete_mission(cur, WEEKLYID1, user_id, 1)
+    complete_mission(cur, WEEKLYID2, user_id, 1)
 
 
 def identify_user(cur, user_id):
@@ -74,7 +92,7 @@ def create_new_user(cur, current_user):
     #Create Currency Entries
     cur.execute("INSERT INTO user_currency (user_id, currency_id, amount) SELECT ?, id, 0 FROM currency", (current_user.id,))
     #Create Mission Entries, set last_reset to 10 days ago so all missions get reset upon load (date(0) or null doesn't work)
-    cur.execute("INSERT INTO user_missions (user_id, mission_id, count, last_reset) SELECT ?, id, 0, date('now', '-10 day') FROM missions", (current_user.id,))
+    cur.execute("INSERT INTO user_missions (user_id, mission_id, count, claimed, last_reset) SELECT ?, id, 0, 0, date('now', '-10 day') FROM missions", (current_user.id,))
 
 
 def sacrifice_request(request):
