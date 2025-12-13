@@ -279,6 +279,9 @@ def missions():
         with sqlite3.connect(Config.DATABASE_URI) as con:
             cur = con.cursor()
             user.check_login_missions(cur, missions, session["id"])
+            for mission in missions:
+                if user.check_mission_reset(mission):
+                    user.reset_mission(cur, mission["mission_id"], session["id"])
 
         #Get missions again for changes
         updated_missions = user.get_user_missions(session["id"])

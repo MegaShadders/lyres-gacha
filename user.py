@@ -34,7 +34,7 @@ def get_user_missions(user_id):
                                INNER JOIN missions
                                ON missions.id = user_missions.mission_id
                                WHERE user_id = ?""", [user_id]).fetchall()
-        
+
     return missions
 
 def check_login_missions(cur, missions, user_id):

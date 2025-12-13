@@ -1,5 +1,6 @@
 import sqlite3
 from config import Config
+import user
 
 def dict_factory(cursor, row):
     fields = [column[0] for column in cursor.description]
@@ -20,6 +21,12 @@ def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):
                 WHERE user_id = ? AND unit_id = ?;"""
                 , [sacriAmt, user_id, sacriUnit["id"]])
     
+    #Check mission
+    missions = user.get_user_missions(user_id)
+    for mission in missions:
+        if "Offering" in mission["description"]:
+            user.complete_mission(cur, mission["mission_id"], user_id, sacriAmt)
+
 
 def get_banners(cur):
     return cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
