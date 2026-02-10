@@ -35,19 +35,7 @@ def get_user_missions(user_id):
                                ON missions.id = user_missions.mission_id
                                WHERE user_id = ?""", [user_id]).fetchall()
 
-    return missions
-
-def check_login_missions(cur, missions, user_id):
-    daily_login_reset = False
-    for mission in missions:
-        if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
-            if check_mission_reset(mission):
-                daily_login_reset = True #If any of these missions reset, a new login has occured
-                reset_mission(cur, mission["mission_id"], user_id)
-    
-    if daily_login_reset:
-        daily_login(cur, user_id)
-    
+    return missions    
 
 
 def check_mission_reset(mission):
@@ -70,14 +58,6 @@ def reset_mission(cur, mission_id, user_id):
 
 def complete_mission(cur, mission_id, user_id, amount):
     cur.execute("UPDATE user_missions SET count = count + ? WHERE user_id = ? AND mission_id = ?", [amount, user_id, mission_id])
-
-
-def daily_login(cur, user_id):
-    #If the daily login has reset, add 1 score to the login missions with lazy hardcoded IDs 
-    complete_mission(cur, DAILYID1, user_id, 1)
-    complete_mission(cur, DAILYID2, user_id, 1)
-    complete_mission(cur, WEEKLYID1, user_id, 1)
-    complete_mission(cur, WEEKLYID2, user_id, 1)
 
 
 def identify_user(cur, user_id):

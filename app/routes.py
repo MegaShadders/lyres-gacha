@@ -278,10 +278,12 @@ def missions():
     if request.method == "GET": #If GET, load page and check daily login
         with sqlite3.connect(Config.DATABASE_URI) as con:
             cur = con.cursor()
-            user.check_login_missions(cur, missions, session["id"])
             for mission in missions:
                 if user.check_mission_reset(mission):
                     user.reset_mission(cur, mission["mission_id"], session["id"])
+                    #If it's a login mission, immediately complete it
+                    if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
+                        user.complete_mission(cur, mission["mission_id"], session["id"], 1)
 
         #Get missions again for changes
         updated_missions = user.get_user_missions(session["id"])
