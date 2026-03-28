@@ -5,6 +5,9 @@ import datetime
 import sqlite_helper
 from config import Config
 
+SACRIFICE_THRESHOLD = 80
+SACRIFICE_MULTIPLIERS = [1, 5, 10]  # Maps to [R, SR, SSR]
+
 def load_user_currency(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
@@ -92,8 +95,15 @@ def sacrifice_request(request):
         rarity_map = {"SSR": 2, "SR": 1, "R": 0}
         rarityMod = rarity_map.get(sacriUnit["rarity"])
 
-        base_multipliers = [0.2, 2, 4]  # Maps to [R, SR, SSR]
-        reward = int(base_multipliers[rarityMod] * sacriAmt * (sacriAmt + 1) / 2)
+        multiplier = SACRIFICE_MULTIPLIERS[rarityMod]
+        
+        # Piecewise formula: triangular formula up to threshold, then linear        
+        if sacriAmt <= SACRIFICE_THRESHOLD:
+            reward = int(multiplier * ((sacriAmt * (sacriAmt + 1)) / 2))
+        else:
+            threshold_reward = int(multiplier * ((SACRIFICE_THRESHOLD * (SACRIFICE_THRESHOLD + 1)) / 2))
+            # THRESHOLD * MULTIPLIER is the linear rate so that the marginal increase is equal to the [threshold - 1]-th sacrifice
+            reward = threshold_reward + (SACRIFICE_THRESHOLD * SACRIFICE_MULTIPLIERS[rarityMod]) * (sacriAmt - SACRIFICE_THRESHOLD)
         
         sqlite_helper.sacrifice_copies(cur, sacriUnit, session["id"], sacriAmt)
         #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
