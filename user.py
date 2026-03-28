@@ -92,11 +92,9 @@ def sacrifice_request(request):
         rarity_map = {"SSR": 2, "SR": 1, "R": 0}
         rarityMod = rarity_map.get(sacriUnit["rarity"])
 
-        exponentialAmt = min(sacriAmt, 5) #The amount of sacrifices subject to exponentially increasing rewards, up to 5
-        linearAmt = max(sacriAmt-5, 0) #The overflow of sacrifices subject to linearly increasing rewards
-        exponentialReward =  (Config.PULL_COST * 2**rarityMod) * 2**(exponentialAmt-1) #160*2^{0, 1, 2} * 2^{0-5}
-        linearReward = linearAmt * exponentialReward # 0 if sacriAmt <= 5
-        reward = exponentialReward + linearReward
+        base_multipliers = [0.2, 2, 4]  # Maps to [R, SR, SSR]
+        reward = int(base_multipliers[rarityMod] * sacriAmt * (sacriAmt + 1) / 2)
         
         sqlite_helper.sacrifice_copies(cur, sacriUnit, session["id"], sacriAmt)
-        sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1) #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
+        #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
+        sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1) 
