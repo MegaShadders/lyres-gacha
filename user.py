@@ -5,11 +5,6 @@ import datetime
 import sqlite_helper
 from config import Config
 
-DAILYID1 = 1
-DAILYID2 = 2
-WEEKLYID1 = 5
-WEEKLYID2 = 6
-
 def load_user_currency(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
