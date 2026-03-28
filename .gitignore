@@ -19,3 +19,6 @@ lyres.db
 
 # Ignore environment variables
 .env
+
+# Ignore testing pull simulator
+pull_simulator.py
