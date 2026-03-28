@@ -40,19 +40,25 @@
           style="max-height: 70vh; width: auto;">
       </div>
       <form action="/collection" method="post">
-        <div class="modal-footer justify-content-between">
+        <div class="modal-footer justify-content-between d-flex flex-wrap align-items-center">
           <h5 class="text-black">Total Copies: {{ unit["copies"] }}</h5>
+          <div id="rewardDisplay{{ unit['id'] }}" class="d-flex align-items-center gap-2">
+            <img id="rewardIcon{{ unit['id'] }}" src="static/images/ui/currencies/1.png" style="width: 24px; height: 24px;">
+            <span id="rewardAmount{{ unit['id'] }}" class="text-black fw-bold">0</span>
+          </div>
           <button id="sacrificeBtn{{ unit['id'] }}" class="btn btn-light">
             Sacrifice 1
           </button>
           <input
             type="range"
-            class="form-range"
+            class="form-range sacrifice-slider"
             min="0"
             max="{{ unit['copies'] }}"
             name="sacrificeAmount"
             value="0"
             id="customRange{{ unit['id'] }}"
+            data-rarity="{{ unit['rarity'] }}"
+            data-unit-id="{{ unit['id'] }}"
           >
           <input type="hidden" name="id" value="{{ unit['id'] }}">
         </form>
@@ -65,15 +71,45 @@
 <!--vibe coded script for dynamic slider on modal-->
 <script>
   document.addEventListener("DOMContentLoaded", function () {
+    // Sacrifice formula parameters
+    const rarityMap = {"SSR": 2, "SR": 1, "R": 0};
+    const multipliers = [1, 5, 10]; // [R, SR, SSR]
+    const coinImages = {"R": "static/images/ui/currencies/1.png", "SR": "static/images/ui/currencies/2.png", "SSR": "static/images/ui/currencies/2.png"};
+
+    // Piecewise formula: triangular up to threshold, then linear
+    const thresholds = {"R": 80, "SR": 80, "SSR": 80};
+    const linearRates = {"R": 80, "SR": 400, "SSR": 800};
+    
+    const calculateReward = (count, rarity) => {
+      const multiplier = multipliers[rarityMap[rarity]];
+      const threshold = thresholds[rarity];
+      const linearRate = linearRates[rarity];
+      
+      if (count <= threshold) {
+        return Math.floor((multiplier * count * (count + 1)) / 2);
+      } else {
+        const thresholdReward = Math.floor((multiplier * threshold * (threshold + 1)) / 2);
+        return thresholdReward + linearRate * (count - threshold);
+      }
+    };
+
     {% for unit in units %}
       const slider{{ unit['id'] }} = document.getElementById("customRange{{ unit['id'] }}");
       const button{{ unit['id'] }} = document.getElementById("sacrificeBtn{{ unit['id'] }}");
+      const rewardAmount{{ unit['id'] }} = document.getElementById("rewardAmount{{ unit['id'] }}");
+      const rewardIcon{{ unit['id'] }} = document.getElementById("rewardIcon{{ unit['id'] }}");
+      const rarity{{ unit['id'] }} = "{{ unit['rarity'] }}";
 
       if (slider{{ unit['id'] }} && button{{ unit['id'] }}) {
         const updateButton = () => {
           const value = parseInt(slider{{ unit['id'] }}.value);
           button{{ unit['id'] }}.textContent = value > 0 ? `Sacrifice ${value}` : "Sacrifice 0";
           button{{ unit['id'] }}.disabled = value === 0;
+          
+          // Update reward display
+          const reward = calculateReward(value, rarity{{ unit['id'] }});
+          rewardAmount{{ unit['id'] }}.textContent = reward.toLocaleString();
+          rewardIcon{{ unit['id'] }}.src = coinImages[rarity{{ unit['id'] }}];
         };
 
         // Initial update
