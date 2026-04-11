@@ -136,6 +136,7 @@
                 </div>
 
                 <form action="/missions" method="post" class="ms-3">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                   <button type="submit"
                       class="btn {% if mission.claimed == 0 and mission.count >= mission.requirement %}btn-primary{% else %}btn-secondary{% endif %}"
                       {% if mission.claimed == 1 or mission.count < mission.requirement %}disabled{% endif %}

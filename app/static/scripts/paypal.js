@@ -1,3 +1,7 @@
+function getCsrfToken() {
+    return document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+}
+
 window.paypal
     .Buttons({
         style: {
@@ -13,6 +17,7 @@ window.paypal
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        "X-CSRFToken": getCsrfToken(),
                     },
                     // use the "body" param to optionally pass additional order information
                     // like product ids and quantities
@@ -51,6 +56,7 @@ window.paypal
                         method: "POST",
                         headers: {
                             "Content-Type": "application/json",
+                            "X-CSRFToken": getCsrfToken(),
                         },
                     }
                 );

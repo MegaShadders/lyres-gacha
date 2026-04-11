@@ -40,6 +40,7 @@
           style="max-height: 70vh; width: auto;">
       </div>
       <form action="/collection" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
         <div class="modal-footer justify-content-between d-flex flex-wrap align-items-center">
           <h5 class="text-black">Total Copies: {{ unit["copies"] }}</h5>
           <div id="rewardDisplay{{ unit['id'] }}" class="d-flex align-items-center gap-2">

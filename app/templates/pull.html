@@ -30,6 +30,7 @@
                             <input class="pull-button" id="back-button" type="image" src="static/images/pull/back.png">
                         </div>
                         <form action="/pull" method="post">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <div>  
                                 <input class="pull-button" type="image" src="static/images/pull/pull_again.png">
                                 <input type="hidden" name="bannerID" value={{ bannerID }}>

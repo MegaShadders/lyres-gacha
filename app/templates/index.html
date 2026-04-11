@@ -16,6 +16,7 @@
 
 <div class="align-items-center d-flex flex-fill justify-content-around position-absolute bottom-0" style="z-index: 1;" id="pull-list">
   <form action="/pull" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div>  
       <input class="pull-button" type="image" src="static/images/shrine/icons/1pull.png">
       <input type="hidden" name="bannerID" value=1>
@@ -23,6 +24,7 @@
     </div>
   </form>
   <form action="/pull" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div>  
       <input class="pull-button" type="image" src="static/images/shrine/icons/10pull.png">
       <input type="hidden" name="bannerID" value=1>
@@ -166,6 +168,7 @@
                 style="max-height: 70vh; width: auto;">
             </div>
             <form action="/" method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
               <div class="modal-footer justify-content-between d-flex flex-wrap align-items-center">
                 <h5 class="text-black">Total Copies: {{ unit["copies"] }}</h5>
                 <div id="rewardDisplay{{ unit['id'] }}" class="d-flex align-items-center gap-2">
