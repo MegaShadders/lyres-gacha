@@ -10,6 +10,15 @@ def dict_factory(cursor, row):
 def change_currency(cur, amount, user_id, currency_id):
     cur.execute("UPDATE user_currency SET amount = amount + (?) WHERE user_id = ? AND currency_id = ?", [amount, user_id, currency_id])
 
+
+def deduct_currency(cur, cost, user_id, currency_id):
+    """Atomically deduct cost only if balance is sufficient. Returns True on success."""
+    cur.execute(
+        "UPDATE user_currency SET amount = amount - ? WHERE user_id = ? AND currency_id = ? AND amount >= ?",
+        [cost, user_id, currency_id, cost],
+    )
+    return cur.rowcount == 1
+
 def claim_mission(cur, user_id, mission):
     cur.execute("UPDATE user_missions SET claimed = 1 WHERE user_id = ? AND mission_id = ?", [user_id, mission["mission_id"]])
     change_currency(cur, mission["reward"], user_id, mission["currency_id"])

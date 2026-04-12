@@ -159,11 +159,8 @@ def pull():
             return redirect("/")
 
         currency_id = banner_row["currency_id"]
-        currency_row = next(
-            (c for c in currencies if c["currency_id"] == currency_id),
-            None,
-        )
-        if not currency_row or currency_row["amount"] < (Config.PULL_COST * pullNum):
+        total_cost = Config.PULL_COST * pullNum
+        if not sqlite_helper.deduct_currency(cur, total_cost, current_user.id, currency_id):
             return redirect("/")
 
         pool = sqlite_helper.get_banner_pool(cur, current_user.id, bannerID)
@@ -219,12 +216,7 @@ def pull():
         
         # Update database with new pity counts
         for pity in pities:
-            sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id']) 
-        
-        #Update database with new currency amounts
-        sqlite_helper.change_currency(
-            cur, -(Config.PULL_COST * pullNum), current_user.id, currency_id
-        )
+            sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id'])
 
     current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=pullNum, bannerID=bannerID, currencies=currencies)
