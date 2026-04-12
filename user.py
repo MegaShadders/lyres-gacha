@@ -22,28 +22,36 @@ def load_user():
 
     return current_user, currencies
 
+_MISSIONS_QUERY = """SELECT mission_id, description, reward, currency_id, count, requirement, reset, claimed, last_reset
+                     FROM user_missions
+                     INNER JOIN missions
+                     ON missions.id = user_missions.mission_id
+                     WHERE user_id = ?"""
+
+
 def get_user_missions(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
+        missions = cur.execute(_MISSIONS_QUERY, [user_id]).fetchall()
+    return missions
 
-        missions = cur.execute("""SELECT mission_id, description, reward, currency_id, count, requirement, reset, claimed, last_reset
-                               FROM user_missions
-                               INNER JOIN missions
-                               ON missions.id = user_missions.mission_id
-                               WHERE user_id = ?""", [user_id]).fetchall()
 
-    return missions    
+def get_user_missions_with_cursor(cur, user_id):
+    """Use an existing cursor to avoid opening a second connection mid-transaction."""
+    return cur.execute(_MISSIONS_QUERY, [user_id]).fetchall()
 
 
 def check_mission_reset(mission):
     today = datetime.date.today()
-    if mission["reset"] == "Daily":
+    try:
         last_reset = datetime.date.fromisoformat(mission["last_reset"])
+    except (TypeError, ValueError):
+        return True
+    if mission["reset"] == "Daily":
         if today > last_reset:
             return True
     elif mission["reset"] == "Weekly":
-        last_reset = datetime.date.fromisoformat(mission["last_reset"])
         this_monday = today - datetime.timedelta(days=today.weekday())
         if last_reset < this_monday:
             return True

@@ -15,7 +15,7 @@ def upgrade_db():
         return version
 
     def get_script_version(path):
-        return int(path.split('_')[0].split('/')[1])
+        return int(os.path.basename(path).split('_')[0])
     
     print("Checking for new migrations...")
 

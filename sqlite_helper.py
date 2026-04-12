@@ -30,8 +30,7 @@ def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):
                 WHERE user_id = ? AND unit_id = ?;"""
                 , [sacriAmt, user_id, sacriUnit["id"]])
     
-    #Check mission
-    missions = user.get_user_missions(user_id)
+    missions = user.get_user_missions_with_cursor(cur, user_id)
     for mission in missions:
         if "Offering" in mission["description"]:
             user.complete_mission(cur, mission["mission_id"], user_id, sacriAmt)
@@ -143,15 +142,6 @@ def delete_banner(cur, banner_id):
     cur.execute("DELETE FROM banner_units WHERE banner_id = ?", (banner_id,))
     cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (banner_id,))
     cur.execute("DELETE FROM banners WHERE id = ?", (banner_id,))
-
-
-def copy_banner_pity_from_banner(cur, target_banner_id, source_banner_id):
-    cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (target_banner_id,))
-    cur.execute(
-        """INSERT INTO banner_pity (banner_id, pity_id)
-           SELECT ?, pity_id FROM banner_pity WHERE banner_id = ?""",
-        (target_banner_id, source_banner_id),
-    )
 
 
 def get_banner_pool(cur, user_id, banner_id):
