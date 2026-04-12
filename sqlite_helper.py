@@ -130,6 +130,12 @@ def replace_banner_pity(cur, banner_id, pity_ids):
         )
 
 
+def delete_banner(cur, banner_id):
+    cur.execute("DELETE FROM banner_units WHERE banner_id = ?", (banner_id,))
+    cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (banner_id,))
+    cur.execute("DELETE FROM banners WHERE id = ?", (banner_id,))
+
+
 def copy_banner_pity_from_banner(cur, target_banner_id, source_banner_id):
     cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (target_banner_id,))
     cur.execute(

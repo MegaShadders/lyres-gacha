@@ -36,6 +36,11 @@
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-sm btn-outline-secondary">Duplicate</button>
           </form>
+          <form method="post" action="{{ url_for('admin_banner_delete', banner_id=b.id) }}" class="d-inline ms-1"
+                onsubmit="return confirm('Delete banner #{{ b.id }} ({{ b.name }})? This cannot be undone.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
         </td>
       </tr>
       {% endfor %}

@@ -396,3 +396,19 @@ def admin_banner_duplicate(banner_id):
         con.commit()
     flash(f"Banner duplicated as #{new_id} \"{new_name}\" (inactive).", "success")
     return redirect(url_for("admin_banner_edit", banner_id=new_id))
+
+
+@app.route("/admin/banners/<int:banner_id>/delete", methods=["POST"])
+@admin_required
+def admin_banner_delete(banner_id):
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        detail = sqlite_helper.get_banner_admin_detail(cur, banner_id)
+        if not detail:
+            abort(404)
+        name = detail["banner"]["name"]
+        sqlite_helper.delete_banner(cur, banner_id)
+        con.commit()
+    flash(f"Banner #{banner_id} \"{name}\" deleted.", "success")
+    return redirect(url_for("admin_banners_list"))
