@@ -120,7 +120,7 @@ SELECT
 FROM json_each('[
     {"id":1,"maximum":10,"note":"Standard","rarity":"SR","rateup_exists":null},
     {"id":2,"maximum":100,"note":"Standard","rarity":"SSR","rateup_exists":null},
-    {"id":3,"maximum":10,"note":"Limited","rarity":"SR","rateup_exists":null},
+    {"id":3,"maximum":10,"note":"Limited","rarity":"SR","rateup_exists":0},
     {"id":4,"maximum":100,"note":"Limited","rarity":"SSR","rateup_exists":0}
 ]');
 
