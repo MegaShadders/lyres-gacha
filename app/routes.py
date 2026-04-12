@@ -347,36 +347,39 @@ def missions():
         return redirect("/")
     current_user, currencies = user.load_user()
 
-    missions = user.get_user_missions(session["id"]) #Load user missions
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        sqlite_helper.sync_user_missions(cur, session["id"])
+        con.commit()
 
-    if request.method == "GET": #If GET, load page and check daily login
+    missions = user.get_user_missions_active(session["id"])
+
+    if request.method == "GET":
         with sqlite3.connect(Config.DATABASE_URI) as con:
+            con.row_factory = sqlite_helper.dict_factory
             cur = con.cursor()
             for mission in missions:
                 if user.check_mission_reset(mission):
                     user.reset_mission(cur, mission["mission_id"], session["id"])
-                    #If it's a login mission, immediately complete it
                     if mission["description"] == "Daily Login:" or mission["description"] == "Weekly Login:":
                         user.complete_mission(cur, mission["mission_id"], session["id"], 1)
+            con.commit()
 
-        #Get missions again for changes
-        updated_missions = user.get_user_missions(session["id"])
+        updated_missions = user.get_user_missions_active(session["id"])
         return render_template("missions.html", current_user=current_user, currencies=currencies, missions=updated_missions)
 
-    #If POST, mission has been claimed
-    if not request.form.get("mission_id"): #If doesn't exist, exit
+    if not request.form.get("mission_id"):
         return redirect("/missions")
     
     try:
-        #Get the claimed mission id from form
         claimed_mission = next((mission for mission in missions if mission["mission_id"] == int(request.form.get("mission_id"))), None)
-        if claimed_mission["claimed"] == 1  or claimed_mission["count"] < claimed_mission["requirement"]: #If not claimable, exit
+        if claimed_mission["claimed"] == 1  or claimed_mission["count"] < claimed_mission["requirement"]:
             return redirect("/missions")
     except Exception as e:
         logging.warning("Mission claim failed: %s", e)
         return redirect("/missions")
     
-    #Claim Mission
     with sqlite3.connect(Config.DATABASE_URI) as con:
         cur = con.cursor()
         sqlite_helper.claim_mission(cur, session["id"], claimed_mission)

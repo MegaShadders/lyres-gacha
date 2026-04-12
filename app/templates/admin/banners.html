@@ -2,6 +2,12 @@
 {% block title %}: Admin Banners{% endblock %}
 {% block body %}
 <div class="container py-4" style="max-width: 960px; z-index: 5; position: relative;">
+  <nav aria-label="breadcrumb" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Banners</li>
+    </ol>
+  </nav>
   <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Banners</h1>
   <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
     <a href="{{ url_for('admin_banner_new') }}">Create banner</a>

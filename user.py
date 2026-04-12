@@ -28,12 +28,29 @@ _MISSIONS_QUERY = """SELECT mission_id, description, reward, currency_id, count,
                      ON missions.id = user_missions.mission_id
                      WHERE user_id = ?"""
 
+_MISSIONS_ACTIVE_QUERY = """SELECT mission_id, description, reward, currency_id, count, requirement, reset, claimed, last_reset,
+                                   starts_at, ends_at
+                            FROM user_missions
+                            INNER JOIN missions ON missions.id = user_missions.mission_id
+                            WHERE user_id = ?
+                              AND (starts_at IS NULL OR starts_at <= datetime('now'))
+                              AND (ends_at IS NULL OR ends_at > datetime('now'))"""
+
 
 def get_user_missions(user_id):
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
         missions = cur.execute(_MISSIONS_QUERY, [user_id]).fetchall()
+    return missions
+
+
+def get_user_missions_active(user_id):
+    """Return only missions within their schedule window."""
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        missions = cur.execute(_MISSIONS_ACTIVE_QUERY, [user_id]).fetchall()
     return missions
 
 

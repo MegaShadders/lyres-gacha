@@ -1,0 +1,141 @@
+{% extends "layout.html" %}
+{% block title %}: Add Character{% endblock %}
+{% block body %}
+<style>
+  .preview-box {
+    width: 200px;
+    height: 200px;
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f8f8;
+    overflow: hidden;
+    margin-bottom: 1rem;
+  }
+  .preview-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  .preview-box .placeholder-text {
+    color: #999;
+    font-size: 0.85rem;
+  }
+  .preview-section {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .preview-label {
+    font-size: 0.75rem;
+    color: #666;
+    text-align: center;
+    margin-top: 0.25rem;
+  }
+</style>
+<div class="container py-4" style="max-width: 600px; z-index: 5; position: relative;">
+  <nav aria-label="breadcrumb" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_characters_list') }}">Characters</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Add</li>
+    </ol>
+  </nav>
+  <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Add character</h1>
+  <p class="small text-muted" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    Place images at <code>static/images/units/portraits/&lt;id&gt;.png</code> and
+    <code>static/images/units/&lt;rarity&gt;/&lt;id&gt;.png</code> before adding.
+    The preview updates as you type.
+  </p>
+  <form method="post" action="{{ url_for('admin_character_new') }}"
+        style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="mb-3">
+      <label class="form-label">Unit ID</label>
+      <input class="form-control" type="number" name="unit_id" id="unit_id" min="1" required value="{{ unit.id if unit else '' }}">
+      <div id="duplicate-warning" class="form-text text-danger fw-bold mt-1" style="display: none;">
+        This ID is already in use. Adding will be rejected.
+      </div>
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Rarity</label>
+      <select class="form-select" name="rarity" id="rarity">
+        {% for r in ["SSR", "SR", "R"] %}
+        <option value="{{ r }}"{% if unit and unit.rarity == r %} selected{% endif %}>{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <h3 class="h6 mt-4">Image preview</h3>
+    <div class="preview-section">
+      <div>
+        <div class="preview-box" id="portrait-box">
+          <span class="placeholder-text">Portrait</span>
+        </div>
+        <div class="preview-label">Portrait</div>
+      </div>
+      <div>
+        <div class="preview-box" id="full-box">
+          <span class="placeholder-text">Full art</span>
+        </div>
+        <div class="preview-label">Full art</div>
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">Add character</button>
+    <a href="{{ url_for('admin_characters_list') }}" class="btn btn-link mt-3">Cancel</a>
+  </form>
+</div>
+<script>
+(function () {
+  const idInput = document.getElementById("unit_id");
+  const rarityInput = document.getElementById("rarity");
+  const portraitBox = document.getElementById("portrait-box");
+  const fullBox = document.getElementById("full-box");
+  const dupWarning = document.getElementById("duplicate-warning");
+  const submitBtn = document.querySelector('button[type="submit"]');
+  const staticBase = "{{ url_for('static', filename='') }}";
+  const existingIds = new Set({{ existing_ids | tojson }});
+
+  function loadPreview(container, src) {
+    const img = new Image();
+    img.onload = function () {
+      container.innerHTML = "";
+      container.appendChild(img);
+    };
+    img.onerror = function () {
+      container.innerHTML = '<span class="placeholder-text">Not found</span>';
+    };
+    img.src = src;
+    img.alt = "preview";
+  }
+
+  function refresh() {
+    const id = idInput.value.trim();
+    const rarity = rarityInput.value;
+
+    if (id && existingIds.has(parseInt(id))) {
+      dupWarning.style.display = "";
+      idInput.classList.add("is-invalid");
+      submitBtn.disabled = true;
+    } else {
+      dupWarning.style.display = "none";
+      idInput.classList.remove("is-invalid");
+      submitBtn.disabled = false;
+    }
+
+    if (!id) {
+      portraitBox.innerHTML = '<span class="placeholder-text">Portrait</span>';
+      fullBox.innerHTML = '<span class="placeholder-text">Full art</span>';
+      return;
+    }
+    loadPreview(portraitBox, staticBase + "images/units/portraits/" + id + ".png");
+    loadPreview(fullBox, staticBase + "images/units/" + rarity + "/" + id + ".png");
+  }
+
+  idInput.addEventListener("input", refresh);
+  rarityInput.addEventListener("change", refresh);
+  refresh();
+})();
+</script>
+{% endblock %}

@@ -196,8 +196,94 @@ def get_sacrifice_unit(cur, user_id, unit_id):
                                 ORDER BY LENGTH(rarity) DESC;""", [user_id, unit_id]).fetchone()
 
 
+# ---------------------------------------------------------------------------
+# Mission admin helpers
+# ---------------------------------------------------------------------------
 
-    
+def get_all_missions_admin(cur):
+    return cur.execute(
+        "SELECT id, description, reward, reset, requirement, currency_id, starts_at, ends_at FROM missions ORDER BY id"
+    ).fetchall()
 
 
-    
+def get_mission_by_id(cur, mission_id):
+    return cur.execute(
+        "SELECT id, description, reward, reset, requirement, currency_id, starts_at, ends_at FROM missions WHERE id = ?",
+        (mission_id,),
+    ).fetchone()
+
+
+def insert_mission(cur, description, reward, reset, requirement, currency_id, starts_at, ends_at):
+    cur.execute(
+        """INSERT INTO missions (description, reward, reset, requirement, currency_id, starts_at, ends_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        (description, reward, reset, requirement, currency_id, starts_at, ends_at),
+    )
+    row = cur.execute("SELECT last_insert_rowid() AS id").fetchone()
+    return row["id"] if isinstance(row, dict) else row[0]
+
+
+def update_mission(cur, mission_id, description, reward, reset, requirement, currency_id, starts_at, ends_at):
+    cur.execute(
+        """UPDATE missions
+           SET description = ?, reward = ?, reset = ?, requirement = ?, currency_id = ?, starts_at = ?, ends_at = ?
+           WHERE id = ?""",
+        (description, reward, reset, requirement, currency_id, starts_at, ends_at, mission_id),
+    )
+
+
+def delete_mission(cur, mission_id):
+    cur.execute("DELETE FROM user_missions WHERE mission_id = ?", (mission_id,))
+    cur.execute("DELETE FROM missions WHERE id = ?", (mission_id,))
+
+
+def get_active_missions(cur):
+    return cur.execute(
+        """SELECT id, description, reward, reset, requirement, currency_id, starts_at, ends_at
+           FROM missions
+           WHERE (starts_at IS NULL OR starts_at <= datetime('now'))
+             AND (ends_at IS NULL OR ends_at > datetime('now'))
+           ORDER BY id"""
+    ).fetchall()
+
+
+def sync_user_missions(cur, user_id):
+    """Insert user_missions rows for any missions the user doesn't have yet."""
+    cur.execute(
+        """INSERT INTO user_missions (user_id, mission_id, count, claimed, last_reset)
+           SELECT ?, m.id, 0, 0, date('now', '-10 day')
+           FROM missions m
+           WHERE m.id NOT IN (SELECT mission_id FROM user_missions WHERE user_id = ?)""",
+        (user_id, user_id),
+    )
+
+
+# ---------------------------------------------------------------------------
+# Character / unit admin helpers
+# ---------------------------------------------------------------------------
+
+def get_all_units_admin(cur):
+    return cur.execute(
+        "SELECT id, rarity FROM units ORDER BY LENGTH(rarity) DESC, id"
+    ).fetchall()
+
+
+def insert_unit(cur, unit_id, rarity):
+    cur.execute("INSERT INTO units (id, rarity) VALUES (?, ?)", (unit_id, rarity))
+
+
+def delete_unit(cur, unit_id):
+    cur.execute("DELETE FROM banner_units WHERE unit_id = ?", (unit_id,))
+    cur.execute("DELETE FROM collections WHERE unit_id = ?", (unit_id,))
+    cur.execute("DELETE FROM units WHERE id = ?", (unit_id,))
+
+
+def get_admin_counts(cur):
+    """Return counts for the admin dashboard."""
+    banners = cur.execute("SELECT COUNT(*) AS c FROM banners").fetchone()
+    missions = cur.execute("SELECT COUNT(*) AS c FROM missions").fetchone()
+    units = cur.execute("SELECT COUNT(*) AS c FROM units").fetchone()
+    b = banners["c"] if isinstance(banners, dict) else banners[0]
+    m = missions["c"] if isinstance(missions, dict) else missions[0]
+    u = units["c"] if isinstance(units, dict) else units[0]
+    return {"banners": b, "missions": m, "characters": u}

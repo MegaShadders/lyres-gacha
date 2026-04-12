@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block title %}: Admin Characters{% endblock %}
+{% block body %}
+<style>
+  .char-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+  .char-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 0.75rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .char-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .char-card img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    border-radius: 6px;
+    background: #f8f8f8;
+  }
+  .rarity-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    margin-top: 0.25rem;
+  }
+  .rarity-SSR { background: linear-gradient(135deg, #ffd700, #ffb300); color: #333; }
+  .rarity-SR  { background: linear-gradient(135deg, #c0c0c0, #9e9e9e); color: #333; }
+  .rarity-R   { background: linear-gradient(135deg, #cd7f32, #a66528); color: #fff; }
+</style>
+<div class="container py-4" style="max-width: 1200px; z-index: 5; position: relative;">
+  <nav aria-label="breadcrumb" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Characters</li>
+    </ol>
+  </nav>
+  <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Characters</h1>
+  <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
+    <a href="{{ url_for('admin_character_new') }}">Add character</a>
+    &middot; {{ units|length }} total
+  </p>
+  <div class="char-grid" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
+    {% for u in units %}
+    <div class="char-card">
+      <img src="{{ url_for('static', filename='images/units/portraits/' ~ u.id ~ '.png') }}" alt="Unit #{{ u.id }}"
+           onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22><rect fill=%22%23eee%22 width=%22100%22 height=%22100%22/><text x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2214%22>No image</text></svg>'">
+      <div style="font-weight: 600; margin-top: 0.25rem;">#{{ u.id }}</div>
+      <span class="rarity-badge rarity-{{ u.rarity }}">{{ u.rarity }}</span>
+      <form method="post" action="{{ url_for('admin_character_delete', unit_id=u.id) }}" class="mt-2"
+            onsubmit="return confirm('Delete character #{{ u.id }}?');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-sm btn-outline-danger w-100">Delete</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

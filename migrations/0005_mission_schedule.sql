@@ -1,0 +1,7 @@
+BEGIN TRANSACTION;
+PRAGMA user_version = 5;
+
+ALTER TABLE missions ADD COLUMN starts_at TEXT;
+ALTER TABLE missions ADD COLUMN ends_at TEXT;
+
+COMMIT;

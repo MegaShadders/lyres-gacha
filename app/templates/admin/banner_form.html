@@ -2,6 +2,13 @@
 {% block title %}: {% if banner and banner.id %}Edit{% else %}New{% endif %} Banner{% endblock %}
 {% block body %}
 <div class="container py-4" style="max-width: 900px; z-index: 5; position: relative;">
+  <nav aria-label="breadcrumb" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_banners_list') }}">Banners</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{% if banner and banner.id %}Edit #{{ banner.id }}{% else %}New{% endif %}</li>
+    </ol>
+  </nav>
   <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
     {% if banner and banner.id %}Edit banner #{{ banner.id }}{% else %}New banner{% endif %}
   </h1>

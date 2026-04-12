@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block title %}: Admin Missions{% endblock %}
+{% block body %}
+<div class="container py-4" style="max-width: 1100px; z-index: 5; position: relative;">
+  <nav aria-label="breadcrumb" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Missions</li>
+    </ol>
+  </nav>
+  <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Missions</h1>
+  <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
+    <a href="{{ url_for('admin_mission_new') }}">Create mission</a>
+    &middot; Server time (SQLite): <code>{{ db_now }}</code>
+  </p>
+  <table class="table table-bordered table-sm bg-white" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Description</th>
+        <th>Reward</th>
+        <th>Currency</th>
+        <th>Reset</th>
+        <th>Requirement</th>
+        <th>Status</th>
+        <th>Starts</th>
+        <th>Ends</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in missions %}
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>{{ m.description }}</td>
+        <td>{{ m.reward }}</td>
+        <td>{{ m.currency_name }}</td>
+        <td>{{ m.reset }}</td>
+        <td>{{ m.requirement }}</td>
+        <td>
+          {% if m.status == "Active" or m.status == "Permanent" %}
+            <span class="badge bg-success">{{ m.status }}</span>
+          {% elif m.status == "Scheduled" %}
+            <span class="badge bg-warning text-dark">{{ m.status }}</span>
+          {% else %}
+            <span class="badge bg-secondary">{{ m.status }}</span>
+          {% endif %}
+        </td>
+        <td>{% if not m.starts_at and not m.ends_at %}Permanent{% else %}{{ m.starts_at or "—" }}{% endif %}</td>
+        <td>{% if not m.starts_at and not m.ends_at %}{% else %}{{ m.ends_at or "—" }}{% endif %}</td>
+        <td>
+          <a href="{{ url_for('admin_mission_edit', mission_id=m.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin_mission_delete', mission_id=m.id) }}" class="d-inline ms-1"
+                onsubmit="return confirm('Delete mission #{{ m.id }}? This will also remove all user progress for this mission.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

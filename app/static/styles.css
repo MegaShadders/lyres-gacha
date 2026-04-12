@@ -208,10 +208,12 @@ body{
 }
 
 #missions-container {
-    max-width: 60%;
+    max-width: 1400px;
+    width: 100%;
     height: 100%;
     background-color: rgba(122, 122, 122, 0.5);
     overflow: auto;
+    padding: 1.5rem;
 }
 
 /* Coin Hover Pop */

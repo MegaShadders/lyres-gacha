@@ -159,6 +159,22 @@ def _parse_banner_form():
     }
 
 
+@app.route("/admin")
+@admin_required
+def admin_dashboard():
+    current_user, currencies = user.load_user()
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        counts = sqlite_helper.get_admin_counts(cur)
+    return render_template(
+        "admin/dashboard.html",
+        current_user=current_user,
+        currencies=currencies,
+        counts=counts,
+    )
+
+
 @app.route("/admin/banners", methods=["GET"])
 @admin_required
 def admin_banners_list():
@@ -419,3 +435,296 @@ def admin_banner_delete(banner_id):
         con.commit()
     flash(f"Banner #{banner_id} \"{name}\" deleted.", "success")
     return redirect(url_for("admin_banners_list"))
+
+
+# ---------------------------------------------------------------------------
+# Missions admin
+# ---------------------------------------------------------------------------
+
+def _mission_status(row, db_now):
+    if not row["starts_at"] and not row["ends_at"]:
+        return "Permanent"
+    if row["starts_at"] and row["starts_at"] > db_now:
+        return "Scheduled"
+    if row["ends_at"] and row["ends_at"] <= db_now:
+        return "Ended"
+    return "Active"
+
+
+def _parse_mission_form():
+    description = (request.form.get("description") or "").strip()
+    reward = int(request.form.get("reward") or 0)
+    reset = request.form.get("reset") or "None"
+    requirement = int(request.form.get("requirement") or 1)
+    currency_id = int(request.form.get("currency_id") or 1)
+    permanent = request.form.get("permanent") == "on"
+    if permanent:
+        starts_at = None
+        ends_at = None
+    else:
+        starts_at = _parse_schedule_dt(request.form.get("starts_at"))
+        ends_at = _parse_schedule_dt(request.form.get("ends_at"))
+    return {
+        "description": description,
+        "reward": reward,
+        "reset": reset,
+        "requirement": requirement,
+        "currency_id": currency_id,
+        "starts_at": starts_at,
+        "ends_at": ends_at,
+    }
+
+
+def _validate_mission_form(data):
+    if not data["description"]:
+        return "Description is required."
+    if data["reward"] < 0:
+        return "Reward must be non-negative."
+    if data["requirement"] < 1:
+        return "Requirement must be at least 1."
+    if data["starts_at"] and data["ends_at"] and data["ends_at"] <= data["starts_at"]:
+        return "End time must be after start time."
+    return None
+
+
+@app.route("/admin/missions", methods=["GET"])
+@admin_required
+def admin_missions_list():
+    current_user, currencies = user.load_user()
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        db_now = cur.execute("SELECT datetime('now') AS now").fetchone()["now"]
+        rows = sqlite_helper.get_all_missions_admin(cur)
+        currency_rows = sqlite_helper.get_currency_rows(cur)
+    currency_map = {c["id"]: c["name"] for c in currency_rows}
+    for r in rows:
+        r["status"] = _mission_status(r, db_now)
+        r["currency_name"] = currency_map.get(r["currency_id"], str(r["currency_id"]))
+    return render_template(
+        "admin/missions.html",
+        current_user=current_user,
+        currencies=currencies,
+        missions=rows,
+        db_now=db_now,
+    )
+
+
+@app.route("/admin/missions/new", methods=["GET", "POST"])
+@admin_required
+def admin_mission_new():
+    current_user, currencies = user.load_user()
+    if request.method == "GET":
+        with sqlite3.connect(Config.DATABASE_URI) as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            currencies_rows = sqlite_helper.get_currency_rows(cur)
+        return render_template(
+            "admin/mission_form.html",
+            current_user=current_user,
+            currencies=currencies,
+            currencies_rows=currencies_rows,
+            mission=None,
+        )
+
+    data = _parse_mission_form()
+    err = _validate_mission_form(data)
+    if err:
+        flash(err, "error")
+        with sqlite3.connect(Config.DATABASE_URI) as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            currencies_rows = sqlite_helper.get_currency_rows(cur)
+        return render_template(
+            "admin/mission_form.html",
+            current_user=current_user,
+            currencies=currencies,
+            currencies_rows=currencies_rows,
+            mission=data,
+        )
+
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        sqlite_helper.insert_mission(
+            cur,
+            data["description"],
+            data["reward"],
+            data["reset"],
+            data["requirement"],
+            data["currency_id"],
+            data["starts_at"],
+            data["ends_at"],
+        )
+        con.commit()
+    flash("Mission created.", "success")
+    return redirect(url_for("admin_missions_list"))
+
+
+@app.route("/admin/missions/<int:mission_id>/edit", methods=["GET", "POST"])
+@admin_required
+def admin_mission_edit(mission_id):
+    current_user, currencies = user.load_user()
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        mission = sqlite_helper.get_mission_by_id(cur, mission_id)
+        if not mission:
+            abort(404)
+
+        if request.method == "GET":
+            currencies_rows = sqlite_helper.get_currency_rows(cur)
+            return render_template(
+                "admin/mission_form.html",
+                current_user=current_user,
+                currencies=currencies,
+                currencies_rows=currencies_rows,
+                mission=mission,
+            )
+
+        data = _parse_mission_form()
+        err = _validate_mission_form(data)
+        if err:
+            flash(err, "error")
+            currencies_rows = sqlite_helper.get_currency_rows(cur)
+            return render_template(
+                "admin/mission_form.html",
+                current_user=current_user,
+                currencies=currencies,
+                currencies_rows=currencies_rows,
+                mission={**data, "id": mission_id},
+            )
+
+        sqlite_helper.update_mission(
+            cur,
+            mission_id,
+            data["description"],
+            data["reward"],
+            data["reset"],
+            data["requirement"],
+            data["currency_id"],
+            data["starts_at"],
+            data["ends_at"],
+        )
+        con.commit()
+    flash("Mission updated.", "success")
+    return redirect(url_for("admin_missions_list"))
+
+
+@app.route("/admin/missions/<int:mission_id>/delete", methods=["POST"])
+@admin_required
+def admin_mission_delete(mission_id):
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        mission = sqlite_helper.get_mission_by_id(cur, mission_id)
+        if not mission:
+            abort(404)
+        sqlite_helper.delete_mission(cur, mission_id)
+        con.commit()
+    flash(f"Mission #{mission_id} deleted.", "success")
+    return redirect(url_for("admin_missions_list"))
+
+
+# ---------------------------------------------------------------------------
+# Characters (units) admin
+# ---------------------------------------------------------------------------
+
+@app.route("/admin/characters", methods=["GET"])
+@admin_required
+def admin_characters_list():
+    current_user, currencies = user.load_user()
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        units = sqlite_helper.get_all_units_admin(cur)
+    return render_template(
+        "admin/characters.html",
+        current_user=current_user,
+        currencies=currencies,
+        units=units,
+    )
+
+
+@app.route("/admin/characters/new", methods=["GET", "POST"])
+@admin_required
+def admin_character_new():
+    current_user, currencies = user.load_user()
+
+    def _existing_ids():
+        with sqlite3.connect(Config.DATABASE_URI) as con:
+            con.row_factory = sqlite_helper.dict_factory
+            cur = con.cursor()
+            return [r["id"] for r in cur.execute("SELECT id FROM units").fetchall()]
+
+    if request.method == "GET":
+        return render_template(
+            "admin/character_form.html",
+            current_user=current_user,
+            currencies=currencies,
+            unit=None,
+            existing_ids=_existing_ids(),
+        )
+
+    unit_id = request.form.get("unit_id", "").strip()
+    rarity = request.form.get("rarity", "").strip()
+
+    if not unit_id or not unit_id.isdigit():
+        flash("A valid numeric ID is required.", "error")
+        return render_template(
+            "admin/character_form.html",
+            current_user=current_user,
+            currencies=currencies,
+            unit={"id": unit_id, "rarity": rarity},
+            existing_ids=_existing_ids(),
+        )
+
+    unit_id = int(unit_id)
+    if rarity not in ("R", "SR", "SSR"):
+        flash("Rarity must be R, SR, or SSR.", "error")
+        return render_template(
+            "admin/character_form.html",
+            current_user=current_user,
+            currencies=currencies,
+            unit={"id": unit_id, "rarity": rarity},
+            existing_ids=_existing_ids(),
+        )
+
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        existing = cur.execute("SELECT 1 FROM units WHERE id = ?", (unit_id,)).fetchone()
+        if existing:
+            flash(f"Unit #{unit_id} already exists.", "error")
+            return render_template(
+                "admin/character_form.html",
+                current_user=current_user,
+                currencies=currencies,
+                unit={"id": unit_id, "rarity": rarity},
+                existing_ids=_existing_ids(),
+            )
+        sqlite_helper.insert_unit(cur, unit_id, rarity)
+        con.commit()
+    flash(f"Character #{unit_id} ({rarity}) added.", "success")
+    return redirect(url_for("admin_characters_list"))
+
+
+@app.route("/admin/characters/<int:unit_id>/delete", methods=["POST"])
+@admin_required
+def admin_character_delete(unit_id):
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        existing = cur.execute("SELECT 1 FROM units WHERE id = ?", (unit_id,)).fetchone()
+        if not existing:
+            abort(404)
+        in_banner = cur.execute(
+            "SELECT banner_id FROM banner_units WHERE unit_id = ? LIMIT 1", (unit_id,)
+        ).fetchone()
+        if in_banner:
+            flash(f"Cannot delete unit #{unit_id} — it is used in banner #{in_banner['banner_id']}. Remove it from all banners first.", "error")
+            return redirect(url_for("admin_characters_list"))
+        sqlite_helper.delete_unit(cur, unit_id)
+        con.commit()
+    flash(f"Character #{unit_id} deleted.", "success")
+    return redirect(url_for("admin_characters_list"))

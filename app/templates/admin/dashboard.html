@@ -1,0 +1,79 @@
+{% extends "layout.html" %}
+{% block title %}: Admin{% endblock %}
+{% block body %}
+<style>
+  .admin-wrap {
+    font-family: system-ui, sans-serif;
+    letter-spacing: normal;
+    -webkit-text-stroke: 0;
+    color: #222;
+    position: relative;
+    z-index: 5;
+  }
+  .admin-card {
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    color: #222;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .admin-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    color: #222;
+  }
+  .admin-card .card-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.25rem;
+  }
+  .admin-card h2 {
+    font-size: 1.25rem;
+    margin: 0;
+  }
+  .admin-card .card-count {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0d6efd;
+  }
+  .admin-card .card-desc {
+    font-size: 0.85rem;
+    color: #666;
+  }
+</style>
+<div class="container py-5 admin-wrap" style="max-width: 900px;">
+  <h1 class="mb-4">Admin Dashboard</h1>
+  <div class="row g-4">
+    <div class="col-md-4">
+      <a href="{{ url_for('admin_banners_list') }}" class="admin-card d-block h-100">
+        <div class="card-icon">&#127980;</div>
+        <h2>Banners</h2>
+        <div class="card-count">{{ counts.banners }}</div>
+        <div class="card-desc">Manage shrine banners, schedules, and unit pools</div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('admin_missions_list') }}" class="admin-card d-block h-100">
+        <div class="card-icon">&#9889;</div>
+        <h2>Missions</h2>
+        <div class="card-count">{{ counts.missions }}</div>
+        <div class="card-desc">Create and edit daily, weekly, and limited-time missions</div>
+      </a>
+    </div>
+    <div class="col-md-4">
+      <a href="{{ url_for('admin_characters_list') }}" class="admin-card d-block h-100">
+        <div class="card-icon">&#128081;</div>
+        <h2>Characters</h2>
+        <div class="card-count">{{ counts.characters }}</div>
+        <div class="card-desc">Add and manage playable characters in the database</div>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
