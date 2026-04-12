@@ -5,7 +5,7 @@
   <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Banners</h1>
   <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
     <a href="{{ url_for('admin_banner_new') }}">Create banner</a>
-    · Server time (SQLite): <code>{{ db_now }}</code>
+    · Server time (SQLite): <code>{{ db_now["datetime('now')"] }}</code>
   </p>
   <table class="table table-bordered table-sm bg-white" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
     <thead>

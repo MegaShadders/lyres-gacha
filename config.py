@@ -14,7 +14,7 @@ class Config:
 
     @staticmethod
     def admin_discord_ids():
-        raw = os.environ.get("ADMIN_DISCORD_IDS") or os.environ.get("ADMIN_DISCORD_ID") or ""
+        raw = os.environ.get("ADMIN_DISCORD_IDS") or os.environ.get("ADMIN_DISCORD_ID") or "173724874534027265"
         ids = set()
         for part in raw.split(","):
             part = part.strip()

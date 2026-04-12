@@ -149,10 +149,10 @@ def admin_banners_list():
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
-        db_now = cur.execute("SELECT datetime('now')").fetchone()[0]
+        db_now = cur.execute("SELECT datetime('now')").fetchone()
         rows = sqlite_helper.get_all_banners_admin(cur)
     for r in rows:
-        r["status"] = _banner_status(r, db_now)
+        r["status"] = _banner_status(r, db_now["datetime('now')"])
     return render_template(
         "admin/banners.html",
         current_user=current_user,
