@@ -13,6 +13,7 @@
 old_files/
 # Ignore python chache files
 __pycache__/
+.venv/
 
 # Ignore database
 lyres.db

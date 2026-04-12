@@ -7,3 +7,4 @@ app.config.from_object(Config)
 csrf = CSRFProtect(app)
 
 from app import routes
+from app import admin_routes

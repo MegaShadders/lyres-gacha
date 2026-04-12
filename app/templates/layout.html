@@ -22,6 +22,15 @@
         <title>Lyres Gacha {% block title %}{% endblock %}</title>
     </head>
     <body>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="position-fixed top-0 start-50 translate-middle-x p-2" style="z-index: 2000; min-width: 280px;">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} mb-1" role="alert" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: inherit;">{{ message }}</div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
         <div class="position-relative" id="menu-container">
             <div class="position-absolute top-0 start-0" style="z-index: 2;">
                 <button class="btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#menu" aria-controls="menu">

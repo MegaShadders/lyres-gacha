@@ -29,7 +29,113 @@ def sacrifice_copies(cur, sacriUnit, user_id, sacriAmt):
 
 
 def get_banners(cur):
-    return cur.execute("SELECT id FROM banners WHERE active == 1").fetchall()
+    return cur.execute(
+        """SELECT id, name, currency_id, starts_at, ends_at, sort_order, active
+           FROM banners
+           WHERE active = 1
+             AND (starts_at IS NULL OR starts_at <= datetime('now'))
+             AND (ends_at IS NULL OR ends_at > datetime('now'))
+           ORDER BY sort_order ASC, id ASC"""
+    ).fetchall()
+
+
+def get_playable_banner_by_id(cur, banner_id):
+    return cur.execute(
+        """SELECT id, name, currency_id, starts_at, ends_at, sort_order, active
+           FROM banners
+           WHERE id = ?
+             AND active = 1
+             AND (starts_at IS NULL OR starts_at <= datetime('now'))
+             AND (ends_at IS NULL OR ends_at > datetime('now'))""",
+        (banner_id,),
+    ).fetchone()
+
+
+def get_all_banners_admin(cur):
+    return cur.execute(
+        """SELECT id, name, currency_id, starts_at, ends_at, sort_order, active,
+                  (SELECT COUNT(*) FROM banner_units WHERE banner_id = banners.id) AS unit_count
+           FROM banners
+           ORDER BY sort_order ASC, id ASC"""
+    ).fetchall()
+
+
+def get_currency_rows(cur):
+    return cur.execute("SELECT id, name FROM currency ORDER BY id").fetchall()
+
+
+def get_units_for_admin(cur):
+    return cur.execute("SELECT id, rarity FROM units ORDER BY LENGTH(rarity) DESC, id").fetchall()
+
+
+def get_pity_rows(cur):
+    return cur.execute(
+        "SELECT id, maximum, note, rarity, rateup_exists FROM pity ORDER BY id"
+    ).fetchall()
+
+
+def get_banner_admin_detail(cur, banner_id):
+    row = cur.execute(
+        """SELECT id, name, currency_id, starts_at, ends_at, sort_order, active
+           FROM banners WHERE id = ?""",
+        (banner_id,),
+    ).fetchone()
+    if not row:
+        return None
+    units = cur.execute(
+        "SELECT unit_id, rateup FROM banner_units WHERE banner_id = ? ORDER BY unit_id",
+        (banner_id,),
+    ).fetchall()
+    pities = cur.execute(
+        "SELECT pity_id FROM banner_pity WHERE banner_id = ? ORDER BY pity_id",
+        (banner_id,),
+    ).fetchall()
+    return {"banner": row, "units": units, "pity_ids": [p["pity_id"] for p in pities]}
+
+
+def insert_banner(cur, name, active, starts_at, ends_at, sort_order, currency_id):
+    cur.execute(
+        """INSERT INTO banners (name, active, starts_at, ends_at, sort_order, currency_id)
+           VALUES (?, ?, ?, ?, ?, ?)""",
+        (name, 1 if active else 0, starts_at, ends_at, sort_order, currency_id),
+    )
+    return cur.execute("SELECT last_insert_rowid()").fetchone()[0]
+
+
+def update_banner(cur, banner_id, name, active, starts_at, ends_at, sort_order, currency_id):
+    cur.execute(
+        """UPDATE banners
+           SET name = ?, active = ?, starts_at = ?, ends_at = ?, sort_order = ?, currency_id = ?
+           WHERE id = ?""",
+        (name, 1 if active else 0, starts_at, ends_at, sort_order, currency_id, banner_id),
+    )
+
+
+def replace_banner_units(cur, banner_id, unit_rateup_pairs):
+    cur.execute("DELETE FROM banner_units WHERE banner_id = ?", (banner_id,))
+    for unit_id, rateup in unit_rateup_pairs:
+        cur.execute(
+            "INSERT INTO banner_units (banner_id, unit_id, rateup) VALUES (?, ?, ?)",
+            (banner_id, unit_id, 1 if rateup else 0),
+        )
+
+
+def replace_banner_pity(cur, banner_id, pity_ids):
+    cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (banner_id,))
+    for pity_id in pity_ids:
+        cur.execute(
+            "INSERT INTO banner_pity (banner_id, pity_id) VALUES (?, ?)",
+            (banner_id, pity_id),
+        )
+
+
+def copy_banner_pity_from_banner(cur, target_banner_id, source_banner_id):
+    cur.execute("DELETE FROM banner_pity WHERE banner_id = ?", (target_banner_id,))
+    cur.execute(
+        """INSERT INTO banner_pity (banner_id, pity_id)
+           SELECT ?, pity_id FROM banner_pity WHERE banner_id = ?""",
+        (target_banner_id, source_banner_id),
+    )
 
 
 def get_banner_pool(cur, user_id, banner_id):

@@ -1,0 +1,39 @@
+{% extends "layout.html" %}
+{% block title %}: Admin Banners{% endblock %}
+{% block body %}
+<div class="container py-4" style="max-width: 960px; z-index: 5; position: relative;">
+  <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Banners</h1>
+  <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
+    <a href="{{ url_for('admin_banner_new') }}">Create banner</a>
+    · Server time (SQLite): <code>{{ db_now }}</code>
+  </p>
+  <table class="table table-bordered table-sm bg-white" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Status</th>
+        <th>Currency</th>
+        <th>Starts</th>
+        <th>Ends</th>
+        <th>Units</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in banners %}
+      <tr>
+        <td>{{ b.id }}</td>
+        <td>{{ b.name }}</td>
+        <td>{{ b.status }}</td>
+        <td>{{ b.currency_id }}</td>
+        <td>{{ b.starts_at or "—" }}</td>
+        <td>{{ b.ends_at or "—" }}</td>
+        <td>{{ b.unit_count }}</td>
+        <td><a href="{{ url_for('admin_banner_edit', banner_id=b.id) }}">Edit</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

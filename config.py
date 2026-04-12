@@ -11,3 +11,13 @@ class Config:
     PAYPAL_CLIENT_ID = os.environ.get('PAYPAL_CLIENT_ID') 
     PAYPAL_CLIENT_SECRET = os.environ.get('PAYPAL_CLIENT_SECRET')
     PULL_COST = 160
+
+    @staticmethod
+    def admin_discord_ids():
+        raw = os.environ.get("ADMIN_DISCORD_IDS") or os.environ.get("ADMIN_DISCORD_ID") or ""
+        ids = set()
+        for part in raw.split(","):
+            part = part.strip()
+            if part.isdigit():
+                ids.add(int(part))
+        return ids

@@ -76,7 +76,14 @@ def index():
                     raritySorted[unit['rarity']].append(unit)
                 sortedUnits.append(raritySorted)
 
-        return render_template("index.html", current_user=current_user, banners=banners, currencies=currencies, bannerUnits=sortedUnits, bannerPities=bannerPities)
+        return render_template(
+            "index.html",
+            current_user=current_user,
+            banners=banners,
+            currencies=currencies,
+            bannerUnits=sortedUnits,
+            bannerPities=bannerPities,
+        )
 
     elif request.method == "POST":
         user.sacrifice_request(request)
@@ -130,14 +137,21 @@ def pull():
         return redirect("/")
 
 
-    #This will break if a 3rd currency is created
-    currencyIndex = min(1, bannerID-1)
-    if currencies[currencyIndex]["amount"] < (Config.PULL_COST * pullNum):
-        return redirect("/") 
-    
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
+
+        banner_row = sqlite_helper.get_playable_banner_by_id(cur, bannerID)
+        if not banner_row:
+            return redirect("/")
+
+        currency_id = banner_row["currency_id"]
+        currency_row = next(
+            (c for c in currencies if c["currency_id"] == currency_id),
+            None,
+        )
+        if not currency_row or currency_row["amount"] < (Config.PULL_COST * pullNum):
+            return redirect("/")
 
         pool = sqlite_helper.get_banner_pool(cur, current_user.id, bannerID)
         pities = sqlite_helper.get_banner_pities(cur, request.form.get("bannerID"), session['id'])
@@ -171,8 +185,15 @@ def pull():
                     #50% to set rateup flag to 1 if a rateup exists and the rarity is for this pity
                     rateup = 1
 
-            #Roll Unit  
-            pulledUnits.append(random.choice([unit for unit in pool if unit["rarity"] == pullRarity and unit["rateup"] == rateup])) #Random choice between applicable units.
+            #Roll Unit
+            eligible = [
+                unit
+                for unit in pool
+                if unit["rarity"] == pullRarity and unit["rateup"] == rateup
+            ]
+            if not eligible:
+                return redirect("/")
+            pulledUnits.append(random.choice(eligible))
           
         #Update database with pulled units
         for unit in pulledUnits:
@@ -188,7 +209,9 @@ def pull():
             sqlite_helper.update_pity(cur, pity["count"], pity["id"], session['id']) 
         
         #Update database with new currency amounts
-        sqlite_helper.change_currency(cur, -(Config.PULL_COST * pullNum), current_user.id, currencyIndex+1) 
+        sqlite_helper.change_currency(
+            cur, -(Config.PULL_COST * pullNum), current_user.id, currency_id
+        )
 
     current_user, currencies = user.load_user()
     return render_template("pull.html", current_user=current_user, units=pulledUnits, pullNum=pullNum, bannerID=bannerID, currencies=currencies)
