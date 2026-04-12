@@ -70,18 +70,16 @@
                             </a>
                         </div>
                     </nav>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            {% if current_user %}
-                                <img src="{{ current_user.avatar_url }} ">
-                                <p>{{ current_user.username }}</p>
-                                <p style="font-family: 'Times New Roman', Times, serif; color: black; letter-spacing: normal;">ID: {{ current_user.id }}</p>
-                                <a href="/logout"><button>Log Out</button></a>
-                            {% else %}
-                                <a href="{{oauth_url}}"><button>Login with Discord</button></a>
-                            {% endif %}
-                        </li>  
-                    </ul>
+                    <div class="menu-account">
+                        {% if current_user %}
+                            <img class="menu-avatar" src="{{ current_user.avatar_url }}" alt="Avatar">
+                            <p class="menu-username">{{ current_user.username }}</p>
+                            <p class="menu-user-id">ID: {{ current_user.id }}</p>
+                            <a class="menu-btn menu-btn-logout" href="/logout">Log Out</a>
+                        {% else %}
+                            <a class="menu-btn menu-btn-login" href="{{ oauth_url }}">Login with Discord</a>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

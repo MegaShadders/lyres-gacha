@@ -8,6 +8,90 @@
     text-align: center;
 }
 
+/* Account section at bottom of sidebar */
+.menu-account {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0.75rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    gap: 0.25rem;
+}
+
+.menu-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid #ea7c18;
+    object-fit: cover;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    margin-bottom: 0.25rem;
+}
+
+.menu-username {
+    margin: 0;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.menu-user-id {
+    margin: 0;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 0.8rem;
+    color: #555;
+    letter-spacing: normal;
+    -webkit-text-stroke: 0;
+}
+
+.menu-btn {
+    display: inline-block;
+    margin-top: 0.4rem;
+    padding: 0.4rem 1.2rem;
+    border-radius: 6px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: normal;
+    -webkit-text-stroke: 0;
+    text-decoration: none;
+    text-align: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.menu-btn:hover {
+    transform: translateY(-1px);
+}
+
+.menu-btn:active {
+    transform: translateY(0);
+}
+
+.menu-btn-logout {
+    background-color: rgba(0, 0, 0, 0.08);
+    color: #333;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.menu-btn-logout:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+    color: #111;
+}
+
+.menu-btn-login {
+    background-color: #5865F2;
+    color: #fff;
+    border: 1px solid #4752c4;
+}
+
+.menu-btn-login:hover {
+    background-color: #4752c4;
+    color: #fff;
+}
+
 html,
 body{
     height:100%;
