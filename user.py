@@ -82,14 +82,16 @@ def sacrifice_request(request):
         sacriAmt = int(request.form.get("sacrificeAmount"))
     except (TypeError, ValueError):
         return redirect("/")
-    
+
+    if sacriAmt < 1:
+        return redirect("/")
 
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
         sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
     
-        if not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
+        if not sacriUnit or not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
             return redirect("/")
         
         rarity_map = {"SSR": 2, "SR": 1, "R": 0}

@@ -136,6 +136,9 @@ def pull():
     except (TypeError, ValueError):
         return redirect("/")
 
+    if pullNum not in (1, 10):
+        return redirect("/")
+
 
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
