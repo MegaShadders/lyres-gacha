@@ -1,0 +1,5 @@
+Flask==3.1.2
+Flask-WTF==1.2.2
+Zenora==0.0.3.post1
+paypal-server-sdk==2.0.0
+gunicorn==25.0.3
