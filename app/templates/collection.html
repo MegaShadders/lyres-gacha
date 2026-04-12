@@ -5,11 +5,11 @@
 {% block body %}
 <!--Portraits-->
 <div id="collection-background" style="background-image: url(static/images/collections/collectionBG.jpg);">
-  <div id="collection-container" class="container pt-4">
-    <div id="collection-row" class="row justify-content-between">
+  <div id="collection-container" class="pt-4">
+    <div id="collection-grid">
       {% for unit in units %}
-      <div class="col-auto mb-3">
-        <div id="collection-portraits" class="card border-0" style="width: 12rem; position: relative;">
+      <div class="collection-cell">
+        <div class="collection-portrait card border-0">
           {% if unit["copies"] != None %}
             <img src="static/images/units/portraits/{{ unit["id"] }}.png" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}">
             <span class="position-absolute translate-middle badge rounded-pill" style="padding-top: 27%; padding-left: 102%;">

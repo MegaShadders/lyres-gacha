@@ -197,13 +197,29 @@ body{
 }
 
 #collection-container {
-    max-width: 80%;
+    max-width: 1400px;
+    width: 90%;
+    margin: 0 auto;
     height: 100%;
     background-color: rgba(122, 122, 122, 0.5);
     overflow: auto;
 }
 
-#collection-portraits{
+#collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+    gap: 1rem;
+    padding: 0 1rem 1rem;
+}
+
+.collection-cell {
+    display: flex;
+    justify-content: center;
+}
+
+.collection-portrait {
+    width: 12rem;
+    position: relative;
     background-color: rgba(255, 255, 255, 0);
 }
 
