@@ -20,14 +20,19 @@
       <input class="form-check-input" type="checkbox" name="active" id="active" {% if not banner or banner.active %}checked{% endif %}>
       <label class="form-check-label" for="active">Active (players only see active banners within the schedule window)</label>
     </div>
-    <div class="row mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
+    {% set is_permanent = not banner or (not banner.starts_at and not banner.ends_at) %}
+    <div class="form-check mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">
+      <input class="form-check-input" type="checkbox" name="permanent" id="permanent" {% if is_permanent %}checked{% endif %}>
+      <label class="form-check-label" for="permanent">Permanent (no start/end time; always live while active)</label>
+    </div>
+    <div id="schedule-fields" class="row mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
       <div class="col-md-6">
-        <label class="form-label">Starts (UTC, optional)</label>
-        <input class="form-control" type="datetime-local" name="starts_at" value="{% if banner and banner.starts_at %}{{ banner.starts_at.replace(' ', 'T')[:16] }}{% endif %}">
+        <label class="form-label">Starts (UTC)</label>
+        <input class="form-control" type="datetime-local" name="starts_at" id="starts_at" value="{% if banner and banner.starts_at %}{{ banner.starts_at.replace(' ', 'T')[:16] }}{% endif %}">
       </div>
       <div class="col-md-6">
-        <label class="form-label">Ends (UTC, optional)</label>
-        <input class="form-control" type="datetime-local" name="ends_at" value="{% if banner and banner.ends_at %}{{ banner.ends_at.replace(' ', 'T')[:16] }}{% endif %}">
+        <label class="form-label">Ends (UTC)</label>
+        <input class="form-control" type="datetime-local" name="ends_at" id="ends_at" value="{% if banner and banner.ends_at %}{{ banner.ends_at.replace(' ', 'T')[:16] }}{% endif %}">
       </div>
     </div>
     <div class="row mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
@@ -108,5 +113,23 @@
     unitCb.addEventListener("change", sync);
     sync();
   });
+
+  (function () {
+    const permCb = document.getElementById("permanent");
+    const scheduleDiv = document.getElementById("schedule-fields");
+    const startsInput = document.getElementById("starts_at");
+    const endsInput = document.getElementById("ends_at");
+    function toggle() {
+      if (permCb.checked) {
+        scheduleDiv.style.display = "none";
+        startsInput.value = "";
+        endsInput.value = "";
+      } else {
+        scheduleDiv.style.display = "";
+      }
+    }
+    permCb.addEventListener("change", toggle);
+    toggle();
+  })();
 </script>
 {% endblock %}

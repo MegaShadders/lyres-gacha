@@ -5,7 +5,7 @@
   <h1 class="mb-3" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0;">Banners</h1>
   <p style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #333;">
     <a href="{{ url_for('admin_banner_new') }}">Create banner</a>
-    · Server time (SQLite): <code>{{ db_now["datetime('now')"] }}</code>
+    · Server time (SQLite): <code>{{ db_now }}</code>
   </p>
   <table class="table table-bordered table-sm bg-white" style="font-family: system-ui, sans-serif; letter-spacing: normal; -webkit-text-stroke: 0; color: #222;">
     <thead>
@@ -27,10 +27,16 @@
         <td>{{ b.name }}</td>
         <td>{{ b.status }}</td>
         <td>{{ b.currency_id }}</td>
-        <td>{{ b.starts_at or "—" }}</td>
-        <td>{{ b.ends_at or "—" }}</td>
+        <td>{% if not b.starts_at and not b.ends_at %}Permanent{% else %}{{ b.starts_at or "—" }}{% endif %}</td>
+        <td>{% if not b.starts_at and not b.ends_at %}{% else %}{{ b.ends_at or "—" }}{% endif %}</td>
         <td>{{ b.unit_count }}</td>
-        <td><a href="{{ url_for('admin_banner_edit', banner_id=b.id) }}">Edit</a></td>
+        <td>
+          <a href="{{ url_for('admin_banner_edit', banner_id=b.id) }}">Edit</a>
+          <form method="post" action="{{ url_for('admin_banner_duplicate', banner_id=b.id) }}" class="d-inline ms-1">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-sm btn-outline-secondary">Duplicate</button>
+          </form>
+        </td>
       </tr>
       {% endfor %}
     </tbody>

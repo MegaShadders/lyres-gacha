@@ -99,7 +99,8 @@ def insert_banner(cur, name, active, starts_at, ends_at, sort_order, currency_id
            VALUES (?, ?, ?, ?, ?, ?)""",
         (name, 1 if active else 0, starts_at, ends_at, sort_order, currency_id),
     )
-    return cur.execute("SELECT last_insert_rowid()").fetchone()[0]
+    row = cur.execute("SELECT last_insert_rowid() AS id").fetchone()
+    return row["id"] if isinstance(row, dict) else row[0]
 
 
 def update_banner(cur, banner_id, name, active, starts_at, ends_at, sort_order, currency_id):

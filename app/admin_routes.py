@@ -116,10 +116,15 @@ def _validate_rateup_pool(cur, unit_rateup_pairs, pity_ids):
 def _parse_banner_form():
     name = (request.form.get("name") or "").strip()
     active = request.form.get("active") == "on"
+    permanent = request.form.get("permanent") == "on"
     sort_order = int(request.form.get("sort_order") or 0)
     currency_id = int(request.form.get("currency_id") or 1)
-    starts_at = _parse_schedule_dt(request.form.get("starts_at"))
-    ends_at = _parse_schedule_dt(request.form.get("ends_at"))
+    if permanent:
+        starts_at = None
+        ends_at = None
+    else:
+        starts_at = _parse_schedule_dt(request.form.get("starts_at"))
+        ends_at = _parse_schedule_dt(request.form.get("ends_at"))
     unit_ids = list(
         dict.fromkeys(int(x) for x in request.form.getlist("unit_id") if x.isdigit())
     )
@@ -149,10 +154,10 @@ def admin_banners_list():
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
         cur = con.cursor()
-        db_now = cur.execute("SELECT datetime('now')").fetchone()
+        db_now = cur.execute("SELECT datetime('now') AS now").fetchone()["now"]
         rows = sqlite_helper.get_all_banners_admin(cur)
     for r in rows:
-        r["status"] = _banner_status(r, db_now["datetime('now')"])
+        r["status"] = _banner_status(r, db_now)
     return render_template(
         "admin/banners.html",
         current_user=current_user,
@@ -359,3 +364,35 @@ def admin_banner_edit(banner_id):
         con.commit()
     flash("Banner updated.", "success")
     return redirect(url_for("admin_banners_list"))
+
+
+@app.route("/admin/banners/<int:banner_id>/duplicate", methods=["POST"])
+@admin_required
+def admin_banner_duplicate(banner_id):
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        con.row_factory = sqlite_helper.dict_factory
+        cur = con.cursor()
+        detail = sqlite_helper.get_banner_admin_detail(cur, banner_id)
+        if not detail:
+            abort(404)
+        src = detail["banner"]
+        new_name = src["name"] + " (copy)"
+        suffix = 2
+        while cur.execute("SELECT 1 FROM banners WHERE name = ?", (new_name,)).fetchone():
+            new_name = f"{src['name']} (copy {suffix})"
+            suffix += 1
+        new_id = sqlite_helper.insert_banner(
+            cur,
+            new_name,
+            False,
+            src["starts_at"],
+            src["ends_at"],
+            src["sort_order"],
+            src["currency_id"],
+        )
+        unit_rateup = [(u["unit_id"], bool(u["rateup"])) for u in detail["units"]]
+        sqlite_helper.replace_banner_units(cur, new_id, unit_rateup)
+        sqlite_helper.replace_banner_pity(cur, new_id, detail["pity_ids"])
+        con.commit()
+    flash(f"Banner duplicated as #{new_id} \"{new_name}\" (inactive).", "success")
+    return redirect(url_for("admin_banner_edit", banner_id=new_id))
