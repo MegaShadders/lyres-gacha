@@ -7,8 +7,11 @@
 <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
   {% for banner in banners %}
     <div class="banner-icon-wrapper">
-      <button type="button" class="badge banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner(event)">
-      </button>
+      <div class="banner-icon-container">
+        <button type="button" class="badge banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner(event)">
+        </button>
+        <img class="banner-currency-icon" src="static/images/ui/currencies/{{ banner["currency_id"] }}.png">
+      </div>
       {% if banner["ends_at"] %}
         <div class="banner-timer" data-ends-at="{{ banner["ends_at"] }}">--:--:--</div>
       {% else %}
