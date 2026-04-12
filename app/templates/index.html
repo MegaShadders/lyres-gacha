@@ -78,18 +78,28 @@
         {% for banner in banners %}
           {% set bi = loop.index0 %}
           <div id="poolList{{ banner["id"] }}" {% if not loop.first %}style="display: none"{% endif %}>
-            {% if bannerPities[bi][0]["rateup_exists"] == 0 or bannerPities[bi][1]["rateup_exists"] == 0 %}
+            {% set ns = namespace(has_rateup=false) %}
+            {% for rarity in ["SSR", "SR"] %}
+              {% for unit in bannerUnits[bi][rarity] %}
+                {% if unit["rateup"] == 1 %}{% set ns.has_rateup = true %}{% endif %}
+              {% endfor %}
+            {% endfor %}
+            {% if ns.has_rateup %}
               <br><h1>Rateup Pool</h1>
-              {% for pity in bannerPities[bi]%}
-                {% if pity["rateup_exists"] == 0 %}
-                  <h2>{{ pity["rarity"] }}</h2><br>
-                  {% for unit in bannerUnits[bi][pity["rarity"]] %}
-                    <div class="d-flex justify-content-start" id="rateupList{{ pity['rarity'] }}{{ banner["id"] }}">
+              {% for rarity in ["SSR", "SR"] %}
+                {% set ns_r = namespace(has_rarity_rateup=false) %}
+                {% for unit in bannerUnits[bi][rarity] %}
+                  {% if unit["rateup"] == 1 %}{% set ns_r.has_rarity_rateup = true %}{% endif %}
+                {% endfor %}
+                {% if ns_r.has_rarity_rateup %}
+                  <h2>{{ rarity }}</h2><br>
+                  <div class="d-flex justify-content-start flex-wrap" id="rateupList{{ rarity }}{{ banner["id"] }}">
+                    {% for unit in bannerUnits[bi][rarity] %}
                       {% if unit["rateup"] == 1 %}
                         <img src="../static/images/units/portraits/{{ unit["id"] }}.png" style="width: 20%" type="button" class="btn" data-bs-toggle="modal" data-bs-target="#modal{{ unit["id"] }}" data-bs-dismiss="modal">
                       {% endif %}
-                    </div>
-                  {% endfor %}
+                    {% endfor %}
+                  </div>
                 {% endif %}
               {% endfor %}
             {% endif %}
@@ -133,17 +143,23 @@
                 Lyres in {{ pity["maximum"] - pity["count"] }} pulls.<br>
               {% endfor %} 
             </h2><br>
-            {% if bannerPities[bi][0]["rateup_exists"] == 0 or bannerPities[bi][1]["rateup_exists"] == 0 %}
+            {% if ns.has_rateup %}
               <h1>Rateup</h1>
               <h2 style="font-family: 'Times New Roman', Times, serif; color: black;">Every time you roll a
-                {% for pity in bannerPities[bi] %}
-                  {% if pity["rarity"] == "SSR" %}
-                    <span style="color: gold">{{ pity["rarity"] }}</span> / 
-                  {% elif pity["rarity"] == "SR" %}
-                    <span style="color:silver">{{ pity["rarity"] }}</span>
+                {% for rarity in ["SSR", "SR"] %}
+                  {% set ns_rx = namespace(has_ru=false) %}
+                  {% for unit in bannerUnits[bi][rarity] %}
+                    {% if unit["rateup"] == 1 %}{% set ns_rx.has_ru = true %}{% endif %}
+                  {% endfor %}
+                  {% if ns_rx.has_ru %}
+                    {% if rarity == "SSR" %}
+                      <span style="color: gold">{{ rarity }}</span> / 
+                    {% elif rarity == "SR" %}
+                      <span style="color:silver">{{ rarity }}</span>
+                    {% endif %}
                   {% endif %}
-                {% endfor %} 
-                Lyres that is not from pity, you have a 50% chance of obtaining a Lyres within the rateup pool. This doesn’t reset your  pity count to 0.
+                {% endfor %}
+                Lyres that is not from pity, you have a 50% chance of obtaining a Lyres within the rateup pool. This doesn't reset your  pity count to 0.
               </h2>
             {% endif %}
 
