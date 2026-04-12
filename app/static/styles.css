@@ -32,7 +32,7 @@ body{
     height: 100%;
 }
 
-#banner-item{
+.banner-item{
     width: 90%;
     height: 0;
     padding-bottom: 50%;

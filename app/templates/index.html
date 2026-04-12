@@ -6,7 +6,7 @@
 {% if banners %}
 <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
   {% for banner in banners %}
-    <button type="button" class="badge" id="banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner()">
+    <button type="button" class="badge banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner(event)">
 
     </button>
   {% endfor %}
@@ -93,7 +93,7 @@
                 {% endif %}
               {% endfor %}
             {% endif %}
-            <br><h1>Standard Pool</h>
+            <br><h1>Standard Pool</h1>
             {% for rarity in ["SSR", "SR", "R"] %}
             <br><h2>{{ rarity }}</h2>
             <div class="d-flex justify-content-start flex-wrap" id="standardList{{ rarity }}{{ banner["id"] }}">
@@ -266,7 +266,7 @@
     probe.src = url;
   }
 
-  function changeBanner() {
+  function changeBanner(event) {
     const btn = event.currentTarget;
     const bannerId = btn.value;
     const cid = btn.getAttribute("data-currency-id") || "1";
