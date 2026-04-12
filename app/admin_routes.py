@@ -1,5 +1,6 @@
 import datetime
 import sqlite3
+import time
 from functools import wraps
 
 from flask import abort, flash, redirect, render_template, request, session, url_for
@@ -10,6 +11,8 @@ from config import Config
 import sqlite_helper
 import user
 
+ADMIN_CHECK_TTL = 300  # re-verify admin status every 5 minutes
+
 
 def admin_required(view):
     @wraps(view)
@@ -19,10 +22,19 @@ def admin_required(view):
         allow = Config.admin_discord_ids()
         if not allow:
             abort(404)
+
+        cached_at = session.get("_admin_verified_at", 0)
+        if session.get("_is_admin") and (time.time() - cached_at) < ADMIN_CHECK_TTL:
+            return view(*args, **kwargs)
+
         client = APIClient(session["token"], bearer=True)
         cu = client.users.get_current_user()
         if cu.id not in allow:
+            session.pop("_is_admin", None)
             abort(404)
+
+        session["_is_admin"] = True
+        session["_admin_verified_at"] = time.time()
         return view(*args, **kwargs)
 
     return wrapped
