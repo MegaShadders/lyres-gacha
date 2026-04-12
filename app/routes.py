@@ -108,7 +108,8 @@ def callback():
         code = request.args['code']
         access_token = client.oauth.get_access_token(code, Config.REDIRECT_URI).access_token
         session['token'] = access_token
-    except:
+    except Exception as e:
+        logging.warning("OAuth callback failed: %s", e)
         return redirect("/")
     
     bearer_client = APIClient(session.get('token'), bearer=True)
@@ -372,8 +373,8 @@ def missions():
         claimed_mission = next((mission for mission in missions if mission["mission_id"] == int(request.form.get("mission_id"))), None)
         if claimed_mission["claimed"] == 1  or claimed_mission["count"] < claimed_mission["requirement"]: #If not claimable, exit
             return redirect("/missions")
-    except Exception as e: #If None, or int conversion fails, exit
-        print(e)
+    except Exception as e:
+        logging.warning("Mission claim failed: %s", e)
         return redirect("/missions")
     
     #Claim Mission
