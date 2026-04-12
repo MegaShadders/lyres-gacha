@@ -6,9 +6,15 @@
 {% if banners %}
 <div class="align-items-center d-flex flex-column position-absolute top-0 start-0" style="z-index: 1;" id="banner-list">
   {% for banner in banners %}
-    <button type="button" class="badge banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner(event)">
-
-    </button>
+    <div class="banner-icon-wrapper">
+      <button type="button" class="badge banner-item" style="background-image: url(static/images/shrine/icons/{{ banner["id"] }}.png)" value="{{ banner["id"] }}" data-currency-id="{{ banner["currency_id"] }}" onclick="changeBanner(event)">
+      </button>
+      {% if banner["ends_at"] %}
+        <div class="banner-timer" data-ends-at="{{ banner["ends_at"] }}">--:--:--</div>
+      {% else %}
+        <div class="banner-timer permanent">Permanent</div>
+      {% endif %}
+    </div>
   {% endfor %}
 </div>
     
@@ -300,6 +306,31 @@
     {% endfor %}
     document.getElementById("poolList" + String(bannerId)).style.display = "block";
   }
+</script>
+<script>
+  function updateBannerTimers() {
+    const timers = document.querySelectorAll('.banner-timer[data-ends-at]');
+    const now = new Date();
+    timers.forEach(el => {
+      const endsAt = new Date(el.dataset.endsAt + 'Z');
+      const diff = endsAt - now;
+      if (diff <= 0) {
+        el.textContent = 'Ended';
+        return;
+      }
+      const days = Math.floor(diff / 86400000);
+      const hrs = Math.floor((diff % 86400000) / 3600000);
+      const mins = Math.floor((diff % 3600000) / 60000);
+      const secs = Math.floor((diff % 60000) / 1000);
+      if (days > 0) {
+        el.textContent = days + 'd ' + hrs + 'h ' + mins + 'm';
+      } else {
+        el.textContent = hrs + 'h ' + mins + 'm ' + secs + 's';
+      }
+    });
+  }
+  updateBannerTimers();
+  setInterval(updateBannerTimers, 1000);
 </script>
 {% else %}
 <div class="position-absolute top-50 start-50 translate-middle text-center" style="z-index: 5; font-family: 'Times New Roman', Times, serif; color: black;">
