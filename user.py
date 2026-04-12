@@ -1,6 +1,6 @@
 import sqlite3
 from zenora import APIClient
-from flask import session, request, redirect
+from flask import session
 import datetime
 import sqlite_helper
 from config import Config
@@ -74,17 +74,18 @@ def create_new_user(cur, current_user):
 
 
 def sacrifice_request(request):
+    """Returns True if sacrifice was performed, False on validation failure."""
     if not request.form.get("id") or not request.form.get("sacrificeAmount"):
-        return redirect("/")
-        
+        return False
+
     try: 
         sacriID = int(request.form.get("id"))
         sacriAmt = int(request.form.get("sacrificeAmount"))
     except (TypeError, ValueError):
-        return redirect("/")
+        return False
 
     if sacriAmt < 1:
-        return redirect("/")
+        return False
 
     with sqlite3.connect(Config.DATABASE_URI) as con:
         con.row_factory = sqlite_helper.dict_factory
@@ -92,7 +93,7 @@ def sacrifice_request(request):
         sacriUnit = sqlite_helper.get_sacrifice_unit(cur, session['id'], sacriID)
     
         if not sacriUnit or not sacriUnit["copies"] or sacriAmt > sacriUnit["copies"]:
-            return redirect("/")
+            return False
         
         rarity_map = {"SSR": 2, "SR": 1, "R": 0}
         rarityMod = rarity_map.get(sacriUnit["rarity"])
@@ -109,4 +110,6 @@ def sacrifice_request(request):
         
         sqlite_helper.sacrifice_copies(cur, sacriUnit, session["id"], sacriAmt)
         #if rarityMod = 0 (R) silver coins, if rarityMod is 1 or higher (SR/SSR), gold coins. +1 for 0 index array into sql table
-        sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1) 
+        sqlite_helper.change_currency(cur, reward, session["id"], min(1, rarityMod)+1)
+
+    return True
