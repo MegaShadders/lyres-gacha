@@ -190,7 +190,7 @@ body{
     overflow: auto;
 }
 
-#store-item{
+.store-item{
     background-color: rgb(255, 255, 255);
 }
 

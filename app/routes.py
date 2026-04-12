@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, session
+from flask import Flask, render_template, request, redirect, session, jsonify
 import random
 import sqlite3
+import json
 from config import Config
 from zenora import APIClient
 import user
@@ -27,6 +28,17 @@ from app import app
 
 client = APIClient(Config.DISCORD_TOKEN, client_secret=Config.CLIENT_SECRET)
 
+STORE_PRODUCTS = {
+    "160":   {"currency_amount": 160,   "price": "0.01", "currency_id": 2},
+    "800":   {"currency_amount": 800,   "price": "0.04", "currency_id": 2},
+    "1600":  {"currency_amount": 1600,  "price": "0.07", "currency_id": 2},
+    "3200":  {"currency_amount": 3200,  "price": "0.13", "currency_id": 2},
+    "6400":  {"currency_amount": 6400,  "price": "0.23", "currency_id": 2},
+    "12800": {"currency_amount": 12800, "price": "0.40", "currency_id": 2},
+    "25600": {"currency_amount": 25600, "price": "0.65", "currency_id": 2},
+    "51200": {"currency_amount": 51200, "price": "1.00", "currency_id": 2},
+}
+
 paypal_client: PaypalServersdkClient = PaypalServersdkClient(
     client_credentials_auth_credentials=ClientCredentialsAuthCredentials(
         o_auth_client_id=Config.PAYPAL_CLIENT_ID,
@@ -34,14 +46,12 @@ paypal_client: PaypalServersdkClient = PaypalServersdkClient(
     ),
     logging_configuration=LoggingConfiguration(
         log_level=logging.INFO,
-        # Disable masking of sensitive headers for Sandbox testing.
-        # This should be set to True (the default if unset)in production.
-        mask_sensitive_headers=False,
+        mask_sensitive_headers=True,
         request_logging_config=RequestLoggingConfiguration(
-            log_headers=True, log_body=True
+            log_headers=False, log_body=False
         ),
         response_logging_config=ResponseLoggingConfiguration(
-            log_headers=True, log_body=True
+            log_headers=False, log_body=False
         ),
     ),
 )
@@ -245,19 +255,31 @@ def store():
         return redirect("/")
     current_user, currencies = user.load_user()
 
-    return render_template("store.html", current_user=current_user, currencies=currencies)
+    return render_template(
+        "store.html",
+        current_user=current_user,
+        currencies=currencies,
+        store_products=STORE_PRODUCTS,
+        paypal_client_id=Config.PAYPAL_CLIENT_ID,
+    )
 
 
-"""
-Create an order to start the transaction.
-
-@see https://developer.paypal.com/docs/api/orders/v2/#orders_create
-"""
 @app.route("/api/orders", methods=["POST"])
 def create_order():
+    if 'token' not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
     request_body = request.get_json()
-    # use the cart information passed from the front-end to calculate the order amount detals
-    cart = request_body["cart"]
+    if not request_body:
+        return jsonify({"error": "Invalid request"}), 400
+
+    product_id = str(request_body.get("product_id", ""))
+    product = STORE_PRODUCTS.get(product_id)
+    if not product:
+        return jsonify({"error": "Unknown product"}), 400
+
+    custom_id = json.dumps({"user_id": session["id"], "product_id": product_id})
+
     order = orders_controller.orders_create(
         {
             "body": OrderRequest(
@@ -266,31 +288,65 @@ def create_order():
                     PurchaseUnitRequest(
                         amount=AmountWithBreakdown(
                             currency_code="GBP",
-                            value=cart[0]['price'],
+                            value=product["price"],
                         ),
-
+                        custom_id=custom_id,
                     )
                 ],
-
             )
         }
     )
     return ApiHelper.json_serialize(order.body)
 
 
-
-"""
-
-Capture payment for the created order to complete the transaction.
-
-@see https://developer.paypal.com/docs/api/orders/v2/#orders_capture
-"""
 @app.route("/api/orders/<order_id>/capture", methods=["POST"])
 def capture_order(order_id):
+    if 'token' not in session:
+        return jsonify({"error": "Not authenticated"}), 401
+
     order = orders_controller.orders_capture(
         {"id": order_id, "prefer": "return=representation"}
     )
-    return ApiHelper.json_serialize(order.body)
+    order_data = json.loads(ApiHelper.json_serialize(order.body))
+
+    capture = (
+        order_data.get("purchase_units", [{}])[0]
+        .get("payments", {})
+        .get("captures", [{}])[0]
+    )
+    if capture.get("status") != "COMPLETED":
+        return jsonify(order_data)
+
+    capture_id = capture.get("id", "")
+    custom_id_raw = order_data.get("purchase_units", [{}])[0].get("custom_id", "")
+    try:
+        meta = json.loads(custom_id_raw)
+        pay_user_id = meta["user_id"]
+        product_id = meta["product_id"]
+    except (json.JSONDecodeError, KeyError, TypeError):
+        logging.error("Bad custom_id on captured order %s: %s", order_id, custom_id_raw)
+        return jsonify(order_data)
+
+    product = STORE_PRODUCTS.get(product_id)
+    if not product:
+        logging.error("Unknown product_id %s in captured order %s", product_id, order_id)
+        return jsonify(order_data)
+
+    with sqlite3.connect(Config.DATABASE_URI) as con:
+        cur = con.cursor()
+        already = cur.execute(
+            "SELECT 1 FROM paypal_captures WHERE capture_id = ?", (capture_id,)
+        ).fetchone()
+        if not already:
+            cur.execute(
+                "INSERT INTO paypal_captures (capture_id, order_id, user_id, product_id) VALUES (?, ?, ?, ?)",
+                (capture_id, order_id, pay_user_id, product_id),
+            )
+            sqlite_helper.change_currency(
+                cur, product["currency_amount"], pay_user_id, product["currency_id"]
+            )
+
+    return jsonify(order_data)
 
 
 @app.route("/missions", methods=["GET", "POST"])

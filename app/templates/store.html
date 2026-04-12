@@ -1,34 +1,34 @@
 {% extends "layout.html" %}
 
-{% block title %}: Shrine{% endblock %} 
+{% block title %}: Store{% endblock %} 
 
 {% block body %}
 <div id="store-background">
   <div id="store-container" class="container pt-4">
     <div id="store-row" class="row justify-content-around">
-      {% for i in [(160, 0.01), (800, 0.04), (1600, 0.07), (3200, 0.13), (6400, 0.23), (12800, 0.40), (25600, 0.65), (51200, 1.00)] %} <!-- Hardcoded in, replace with database later-->
+      {% for pid, prod in store_products.items() %}
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 12rem; position: relative;" type="button">
-          <img src="../static/images/store/{{ i[0] }}.png" data-bs-toggle="modal" data-bs-target="#purchasePopup" type="button" onclick="updatePopup({{ i[0] }}, {{ i[1] }})">
+        <div class="store-item card border-0" style="width: 12rem; position: relative;" type="button">
+          <img src="../static/images/store/{{ prod.currency_amount }}.png" data-bs-toggle="modal" data-bs-target="#purchasePopup" type="button" onclick="updatePopup('{{ pid }}', {{ prod.currency_amount }})">
         </div>
       </div>
       {% endfor %}
 
       <!-- Empty to fix layout -->
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        <div class="store-item card border-0" style="width: 24rem; position: relative;">
         </div>
       </div> 
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        <div class="store-item card border-0" style="width: 24rem; position: relative;">
         </div>
       </div> 
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        <div class="store-item card border-0" style="width: 24rem; position: relative;">
         </div>
       </div> 
       <div class="col-auto mb-3">
-        <div id="store-item" class="card border-0" style="width: 24rem; position: relative;">
+        <div class="store-item card border-0" style="width: 24rem; position: relative;">
         </div>
       </div> 
     </div>
@@ -52,21 +52,20 @@
       </div>
     </div>
   </div>
+</div>
 <!-- Initialize the JS-SDK -->
-<script 
-  src="https://www.paypal.com/sdk/js?client-id=test&buyer-country=GB&currency=GBP&components=buttons&disable-funding=venmo,paylater,card"
+<script
+  src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&buyer-country=GB&currency=GBP&components=buttons&disable-funding=venmo,paylater,card"
   data-sdk-integration-source="developer-studio">
 </script>
 
 <script src="../static/scripts/paypal.js"></script>
 
 <script>
-  var AMOUNT = "0";
-  var PRICE = "0";
+  var PRODUCT_ID = "";
 
-  function updatePopup(amount, price){
-    AMOUNT = amount.toString();
-    PRICE = price.toString();
+  function updatePopup(productId, amount){
+    PRODUCT_ID = productId;
     document.getElementById("purchase-popup-img").src = "../static/images/store/" + amount + ".png";
     document.getElementById("popup-title").innerText = "Purchase " + amount + " Gold Fox Coins";
   }
